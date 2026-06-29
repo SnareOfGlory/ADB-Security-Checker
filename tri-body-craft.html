@@ -62,16 +62,18 @@
   <h2>Panel local angular velocity</h2>
   <div class="row"><span class="k" style="color:#ffb27a">ω<sub>L,local</sub></span><span class="v vec" id="r_wl">0, 0, 0</span></div>
   <div class="row"><span class="k" style="color:#7adcff">ω<sub>R,local</sub></span><span class="v vec" id="r_wr">0, 0, 0</span></div>
-  <h2>Momentum budget</h2>
-  <div class="row"><span class="k">craft p (fwd)</span><span class="v" id="r_pcraft">0.000</span></div>
-  <div class="row"><span class="k">radiated field |P|</span><span class="v" id="r_pfield">0.000</span></div>
-  <div class="row"><span class="k">Σ (conserved)</span><span class="v" id="r_pcheck">0.000</span></div>
+  <h2>Spacetime channel</h2>
+  <div class="row"><span class="k">craft momentum |p|</span><span class="v" id="r_pcraft">0.000</span></div>
+  <div class="row"><span class="k">radiated → spacetime |P|</span><span class="v" id="r_pfield">0.000</span></div>
+  <div class="row"><span class="k">p_craft + P_field</span><span class="v" id="r_pcheck">0.0e+0</span></div>
+  <div class="row"><span class="k">mass quadrupole |Q|</span><span class="v" id="r_quad">0.000</span></div>
+  <div class="row"><span class="k">emission asym A(Δφ)</span><span class="v" id="r_asym">0.000</span></div>
 </div>
 
 <div id="controls" class="panel">
   <h1>FIELD-DRIVE CONTROLS</h1>
   <div class="sld">
-    <label>α &mdash; field coupling strength <b id="l_alpha">5.0</b></label>
+    <label>α &mdash; coupling enhancement (× bare G·c⁻⁵) <b id="l_alpha">5.0</b></label>
     <input id="s_alpha" type="range" min="0" max="20" step="0.1" value="5">
   </div>
   <div class="sld">
@@ -104,15 +106,17 @@
   <label class="tog"><input type="checkbox" id="t_trail" checked> trajectory trail</label>
   <label class="tog"><input type="checkbox" id="t_glow" checked> lock-coupling glow</label>
   <label class="tog"><input type="checkbox" id="t_vel" checked> velocity arrow</label>
-  <div class="note">Set Δφ to a non-zero value to steer: the inter-panel phase
-  asymmetry biases the field-momentum exchange, yawing the assembly frame.</div>
+  <div class="note">Δφ breaks the L/R symmetry → the emission asymmetry A that
+  sources <i>directional</i> momentum radiation, steering the craft. α is the open
+  question: the bare gravitational channel (~c⁵/G) is ~10⁴⁰× too weak — this runs
+  α as the enhancement factor that would have to be explained.</div>
 </div>
 
 <div id="legend" class="panel">
   <div><span class="swatch" style="background:#ff5a5a"></span>can face marker (watch it tumble)</div>
   <div><span class="swatch" style="background:#9aa6b8"></span>panels L/R &mdash; quaternionic rotators (the active elements)</div>
   <div><span class="swatch" style="background:#4fd1ff"></span>lock-coupling field (panel ↔ can)</div>
-  <div><span class="swatch" style="background:#7CFFB2"></span>velocity &nbsp;·&nbsp; <span class="swatch" style="background:#ff7a3c"></span>radiated field momentum (backward)</div>
+  <div><span class="swatch" style="background:#7CFFB2"></span>velocity &nbsp;·&nbsp; <span class="swatch" style="background:#ff7a3c"></span>momentum radiated into spacetime (backward)</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -266,7 +270,8 @@ function deriv(s, t){
   /* panel attitudes evolve purely quaternionically */
   const dpL=qderiv(pL,wlL), dpR=qderiv(pR,wlR);
 
-  /* radiated field momentum:  dP_field/dt = −F_thrust  (Newton's 3rd to field) */
+  /* momentum radiated into the spacetime field:  dP_field/dt = −F_thrust.
+     This is the "exhaust" — it is what makes the drive NOT reactionless. */
   const dField=sclV(thrust,-1);
 
   /* low-pass the raw quaternionic force toward its steady value */
@@ -505,6 +510,40 @@ const f2=n=>(n>=0?' ':'')+n.toFixed(2);
 const f3=n=>(n>=0?' ':'')+n.toFixed(3);
 const v3=(a,f=f2)=>a.map(f).join(', ');
 let hudT=0;
+
+/* ---- spacetime-channel diagnostics ----
+   The panels time-vary the system's mass quadrupole Q (extended-body second
+   moments, so Q oscillates as they tumble — that's what sources radiation).
+   The L/R force imbalance A is zero when the panels are symmetric (Δφ=0) and
+   grows with Δφ; in GR it is exactly that broken symmetry that lets a source
+   radiate NET linear momentum (not just energy), i.e. produce directional thrust. */
+function bodyMoment(q,s){               // rotated second-mass-moment tensor (3x3)
+  const ax=[qrot(q,[1,0,0]),qrot(q,[0,1,0]),qrot(q,[0,0,1])];
+  const M=[[0,0,0],[0,0,0],[0,0,0]];
+  for(let k=0;k<3;k++)for(let i=0;i<3;i++)for(let j=0;j<3;j++) M[i][j]+=s[k]*ax[k][i]*ax[k][j];
+  return M;
+}
+function diagnostics(){
+  const c=centerOfMass(), qg=[S[33],S[34],S[35],S[36]];
+  const sCan=[Mcan*0.0625, Mcan*0.1875, Mcan*0.0625];           // ∫x²dm of the can
+  const sPan=[Mpanel*4/12, Mpanel*0.36/12, Mpanel*0.0025/12];   // …of a panel slab
+  const items=[
+    {q:qmul(qg,[S[6],S[7],S[8],S[9]]),     m:Mcan,   d:[S[0]-c.x,S[1]-c.y,S[2]-c.z],  s:sCan},
+    {q:qmul(qg,[S[25],S[26],S[27],S[28]]), m:Mpanel, d:[S[13]-c.x,S[14]-c.y,S[15]-c.z],s:sPan},
+    {q:qmul(qg,[S[29],S[30],S[31],S[32]]), m:Mpanel, d:[S[19]-c.x,S[20]-c.y,S[21]-c.z],s:sPan},
+  ];
+  const T=[[0,0,0],[0,0,0],[0,0,0]];
+  for(const b of items){const M=bodyMoment(b.q,b.s);
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++) T[i][j]+=M[i][j]+b.m*b.d[i]*b.d[j];}
+  const tr=T[0][0]+T[1][1]+T[2][2];
+  let qn=0; for(let i=0;i<3;i++)for(let j=0;j<3;j++){const Q=3*T[i][j]-(i===j?tr:0); qn+=Q*Q;}
+  // L/R quaternionic-force imbalance = emission asymmetry
+  const qL=qmul(qg,[S[25],S[26],S[27],S[28]]), qR=qmul(qg,[S[29],S[30],S[31],S[32]]);
+  const FqL=cross(qrot(qL,[0,0,1]),qrot(qL,omegaLocal(simTime,0)));
+  const FqR=cross(qrot(qR,[0,0,1]),qrot(qR,omegaLocal(simTime,dphi)));
+  return {quad:Math.sqrt(qn), asym:lenV(subV(FqL,FqR))*alpha};
+}
+
 function updateHUD(){
   $('r_t').textContent=simTime.toFixed(2)+' s';
   const v=comVelocity();
@@ -524,6 +563,9 @@ function updateHUD(){
   $('r_pcraft').textContent=lenV(pc).toFixed(3);
   $('r_pfield').textContent=lenV(pf).toFixed(3);
   $('r_pcheck').textContent=lenV(addV(pc,pf)).toExponential(1);
+  const dg=diagnostics();
+  $('r_quad').textContent=dg.quad.toFixed(3);
+  $('r_asym').textContent=dg.asym.toFixed(3);
 }
 
 /* ============================================================================
