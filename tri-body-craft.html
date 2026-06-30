@@ -70,6 +70,7 @@
   <div class="row"><span class="k">emission asym A(Δφ)</span><span class="v" id="r_asym">0.000</span></div>
   <h2>Coupling budget &nbsp;α = N²·Q·A</h2>
   <div class="row"><span class="k">F_bare (ordinary)</span><span class="v" id="r_fbare">0 N</span></div>
+  <div class="row"><span class="k">freq lever (vs 1 Hz)</span><span class="v" id="r_flev">10^0 ×</span></div>
   <div class="row"><span class="k">enhancement needed</span><span class="v" id="r_ereq">0 ×</span></div>
   <div class="row"><span class="k">your budget N²·Q</span><span class="v" id="r_abudget">0 ×</span></div>
   <div class="row"><span class="k">thrust achieved</span><span class="v" id="r_freal">0 N</span></div>
@@ -96,8 +97,26 @@
     <input id="s_klock" type="range" min="10" max="300" step="1" value="100">
   </div>
   <div class="sld">
-    <label>panel rotation freq scale <b id="l_freq">1.00</b></label>
-    <input id="s_freq" type="range" min="0.2" max="3" step="0.01" value="1">
+    <label>visible tumble rate (×) <b id="l_freq">2.00</b></label>
+    <input id="s_freq" type="range" min="0.2" max="3" step="0.01" value="2">
+  </div>
+
+  <h2>Sighting assumptions</h2>
+  <div class="sld">
+    <label>carrier f_c — the ω⁶ lever <b id="l_fc">1 Hz</b></label>
+    <input id="s_fc" type="range" min="0" max="14" step="0.5" value="0">
+  </div>
+  <div class="sld">
+    <label>panel mass M_p (kg) <b id="l_mp">200</b></label>
+    <input id="s_mp" type="range" min="10" max="2000" step="10" value="200">
+  </div>
+  <div class="sld">
+    <label>craft mass M (kg) <b id="l_mcraft">1500</b></label>
+    <input id="s_mcraft" type="range" min="100" max="5000" step="50" value="1500">
+  </div>
+  <div class="sld">
+    <label>target maneuver <b id="l_g">1.0 g</b></label>
+    <input id="s_g" type="range" min="0.1" max="30" step="0.1" value="9.81">
   </div>
 
   <h2>Playback</h2>
@@ -117,10 +136,12 @@
   <label class="tog"><input type="checkbox" id="t_trail" checked> trajectory trail</label>
   <label class="tog"><input type="checkbox" id="t_glow" checked> lock-coupling glow</label>
   <label class="tog"><input type="checkbox" id="t_vel" checked> velocity arrow</label>
-  <div class="note">α is now a <i>budget</i>: coherence (N²) × resonance (Q) ×
-  asymmetry A(Δφ). Drive N_coh and Q until "gap remaining" reads CLOSED. The
-  0-reflectivity, ~1 Hz rotor matches a Zel'dovich absorptive superradiator —
-  the lossy-spin lever not yet in the budget.</div>
+  <div class="note">α is a <i>budget</i>: carrier f_c (ω⁶) × coherence (N²) ×
+  resonance (Q) × asymmetry A(Δφ). Raise f_c first — at ~1 kHz the gap already
+  closes. Caveat: F_bare assumes the full panel quadrupole amplitude is held at
+  f_c (an optimistic cap), so the closing frequency is a best case. The
+  0-reflectivity ~1 Hz rotor also fits a Zel'dovich absorptive superradiator —
+  a further lever not yet in the budget.</div>
 </div>
 
 <div id="legend" class="panel">
@@ -152,14 +173,18 @@ const steerGain = 0.05;       // heading yaw-rate per unit sin(Δφ)  (steering)
 const lpRate = 1.5;           // low-pass rate that extracts the steady thrust
 const dt = 0.01;
 
-/* ---------- real-world budget constants (anchored to the sighting) ---------- */
+/* ---------- real-world budget assumptions (editable; anchored to sighting) ----
+   Note the split: the VISIBLE tumble is ~1 Hz (steering envelope), but the
+   radiating quantity is a high-frequency coherent CARRIER, f_c. Because mass-
+   quadrupole power ∝ ω⁶, f_c is by far the strongest lever — a GHz carrier is
+   ~10^54 louder than a 1 Hz one for the same quadrupole amplitude. */
 const PHYS = {
-  G:6.674e-11, c:2.998e8,   // SI
-  Mp:200,        // panel mass (kg)        — assumption
-  L:2.0,         // panel length (m)       — from sighting
-  Mcraft:1500,   // craft mass (kg)        — ~1.5×2×3 m body
-  aTarget:9.81,  // target maneuver accel  — 1 g
-  fHz:1.0        // rotation rate (Hz)     — ~1 turn/sec, from sighting
+  G:6.674e-11, c:2.998e8,   // SI constants
+  Mp:200,        // panel mass (kg)
+  L:2.0,         // panel length (m)
+  Mcraft:1500,   // craft mass (kg)
+  aTarget:9.81,  // target maneuver accel (m/s²)
+  logFc:0        // log10 carrier frequency (Hz); 0 = the naive 1 Hz assumption
 };
 
 /* ---------- live (slider-driven) parameters ---------- */
@@ -578,25 +603,28 @@ function diagnostics(){
    on-screen gain alphaVis tracks the fraction of the (log) gap that is closed
    — so dialing in coherence/Q visibly brings the craft to life. */
 function updateBudget(){
-  const w=2*Math.PI*PHYS.fHz;
+  const w=2*Math.PI*Math.pow(10,PHYS.logFc);                    // carrier angular freq
   const eps=0.15+0.85*Math.abs(Math.sin(dphi));                 // emission asymmetry A
   const Fbare=PHYS.G*PHYS.Mp*PHYS.Mp*Math.pow(PHYS.L,4)*Math.pow(w,6)/(5*Math.pow(PHYS.c,6))*eps;
   const Ftarget=PHYS.Mcraft*PHYS.aTarget;
   const logAphys=2*logNcoh+logQ;                                // log10(N² · Q)
   const Freal=Fbare*Math.pow(10,logAphys);
-  const logE=Math.log10(Ftarget/Fbare);                         // enhancement needed
-  const frac=Math.max(0,Math.min(1.2, logAphys/logE));
+  const logE=Math.log10(Ftarget/Fbare);                         // enhancement still needed
+  let frac;                                                     // log-fraction of gap closed
+  if(logE<=0) frac=1.2;                                         // F_bare alone already clears target
+  else frac=Math.max(0,Math.min(1.2, logAphys/logE));
   alphaVis=11*Math.max(0.03,frac);
-  const logNreq=0.5*(logE-logQ);
+  const logNreq=Math.max(0,0.5*(logE-logQ));
   $('r_fbare').textContent=Fbare.toExponential(2)+' N';
-  $('r_ereq').textContent='10^'+logE.toFixed(1)+' ×';
+  $('r_flev').textContent='10^'+(6*PHYS.logFc).toFixed(0)+' × (ω⁶)';
+  $('r_ereq').textContent= logE<=0 ? 'none — cleared' : '10^'+logE.toFixed(1)+' ×';
   $('r_abudget').textContent='10^'+logAphys.toFixed(0)+' ×';
   $('r_freal').textContent=Freal.toExponential(2)+' N';
   const gap=Ftarget/Freal;
   const g=$('r_gap');
   g.textContent = gap<=1 ? 'CLOSED ✓ ('+(1/gap).toExponential(1)+'× margin)' : gap.toExponential(1)+'× short';
   g.style.color = gap<=1 ? 'var(--good)' : 'var(--warn)';
-  $('r_nreq').textContent='10^'+logNreq.toFixed(1)+'  @ Q=10^'+logQ.toFixed(0);
+  $('r_nreq').textContent = logE<=0 ? '0 (cleared)' : '10^'+logNreq.toFixed(1)+'  @ Q=10^'+logQ.toFixed(0);
 }
 
 function updateHUD(){
@@ -665,6 +693,13 @@ bindSlider('s_q','l_q',v=>{logQ=v;updateBudget();},v=>v.toFixed(1));
 bindSlider('s_dphi','l_dphi',v=>dphi=v,v=>v.toFixed(2)+' rad');
 bindSlider('s_klock','l_klock',v=>klock=v,v=>v.toFixed(0));
 bindSlider('s_freq','l_freq',v=>freqScale=v,v=>v.toFixed(2));
+const fmtHz=x=>{const f=Math.pow(10,x); if(f>=1e12)return (f/1e12).toFixed(0)+' THz';
+  if(f>=1e9)return (f/1e9).toFixed(0)+' GHz'; if(f>=1e6)return (f/1e6).toFixed(0)+' MHz';
+  if(f>=1e3)return (f/1e3).toFixed(0)+' kHz'; return f.toFixed(0)+' Hz';};
+bindSlider('s_fc','l_fc',v=>{PHYS.logFc=v;updateBudget();},fmtHz);
+bindSlider('s_mp','l_mp',v=>{PHYS.Mp=v;updateBudget();},v=>v.toFixed(0));
+bindSlider('s_mcraft','l_mcraft',v=>{PHYS.Mcraft=v;updateBudget();},v=>v.toFixed(0));
+bindSlider('s_g','l_g',v=>{PHYS.aTarget=v;updateBudget();},v=>(v/9.81).toFixed(1)+' g');
 
 $('b_pause').addEventListener('click',e=>{
   running=!running; e.target.textContent=running?'⏸ Pause':'▶ Play';
