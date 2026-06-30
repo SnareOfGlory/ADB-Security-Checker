@@ -68,13 +68,24 @@
   <div class="row"><span class="k">p_craft + P_field</span><span class="v" id="r_pcheck">0.0e+0</span></div>
   <div class="row"><span class="k">mass quadrupole |Q|</span><span class="v" id="r_quad">0.000</span></div>
   <div class="row"><span class="k">emission asym A(Δφ)</span><span class="v" id="r_asym">0.000</span></div>
+  <h2>Coupling budget &nbsp;α = N²·Q·A</h2>
+  <div class="row"><span class="k">F_bare (ordinary)</span><span class="v" id="r_fbare">0 N</span></div>
+  <div class="row"><span class="k">enhancement needed</span><span class="v" id="r_ereq">0 ×</span></div>
+  <div class="row"><span class="k">your budget N²·Q</span><span class="v" id="r_abudget">0 ×</span></div>
+  <div class="row"><span class="k">thrust achieved</span><span class="v" id="r_freal">0 N</span></div>
+  <div class="row"><span class="k">gap remaining</span><span class="v" id="r_gap">—</span></div>
+  <div class="row"><span class="k">need log₁₀N_coh</span><span class="v" id="r_nreq">—</span></div>
 </div>
 
 <div id="controls" class="panel">
   <h1>FIELD-DRIVE CONTROLS</h1>
   <div class="sld">
-    <label>α &mdash; coupling enhancement (× bare G·c⁻⁵) <b id="l_alpha">5.0</b></label>
-    <input id="s_alpha" type="range" min="0" max="20" step="0.1" value="5">
+    <label>N_coh &mdash; coherent emitters (log₁₀) <b id="l_ncoh">20</b></label>
+    <input id="s_ncoh" type="range" min="0" max="30" step="0.5" value="20">
+  </div>
+  <div class="sld">
+    <label>Q &mdash; resonant quality (log₁₀) <b id="l_q">12</b></label>
+    <input id="s_q" type="range" min="0" max="18" step="0.5" value="12">
   </div>
   <div class="sld">
     <label>Δφ &mdash; panel phase offset (steer) <b id="l_dphi">0.00 rad</b></label>
@@ -106,15 +117,15 @@
   <label class="tog"><input type="checkbox" id="t_trail" checked> trajectory trail</label>
   <label class="tog"><input type="checkbox" id="t_glow" checked> lock-coupling glow</label>
   <label class="tog"><input type="checkbox" id="t_vel" checked> velocity arrow</label>
-  <div class="note">Δφ breaks the L/R symmetry → the emission asymmetry A that
-  sources <i>directional</i> momentum radiation, steering the craft. α is the open
-  question: the bare gravitational channel (~c⁵/G) is ~10⁴⁰× too weak — this runs
-  α as the enhancement factor that would have to be explained.</div>
+  <div class="note">α is now a <i>budget</i>: coherence (N²) × resonance (Q) ×
+  asymmetry A(Δφ). Drive N_coh and Q until "gap remaining" reads CLOSED. The
+  0-reflectivity, ~1 Hz rotor matches a Zel'dovich absorptive superradiator —
+  the lossy-spin lever not yet in the budget.</div>
 </div>
 
 <div id="legend" class="panel">
   <div><span class="swatch" style="background:#ff5a5a"></span>can face marker (watch it tumble)</div>
-  <div><span class="swatch" style="background:#9aa6b8"></span>panels L/R &mdash; quaternionic rotators (the active elements)</div>
+  <div><span class="swatch" style="background:#1a1c22"></span>panels L/R &mdash; matte rotators (orange=L, cyan=R edge markers)</div>
   <div><span class="swatch" style="background:#4fd1ff"></span>lock-coupling field (panel ↔ can)</div>
   <div><span class="swatch" style="background:#7CFFB2"></span>velocity &nbsp;·&nbsp; <span class="swatch" style="background:#ff7a3c"></span>momentum radiated into spacetime (backward)</div>
 </div>
@@ -141,11 +152,25 @@ const steerGain = 0.05;       // heading yaw-rate per unit sin(Δφ)  (steering)
 const lpRate = 1.5;           // low-pass rate that extracts the steady thrust
 const dt = 0.01;
 
+/* ---------- real-world budget constants (anchored to the sighting) ---------- */
+const PHYS = {
+  G:6.674e-11, c:2.998e8,   // SI
+  Mp:200,        // panel mass (kg)        — assumption
+  L:2.0,         // panel length (m)       — from sighting
+  Mcraft:1500,   // craft mass (kg)        — ~1.5×2×3 m body
+  aTarget:9.81,  // target maneuver accel  — 1 g
+  fHz:1.0        // rotation rate (Hz)     — ~1 turn/sec, from sighting
+};
+
 /* ---------- live (slider-driven) parameters ---------- */
-let alpha   = 5.0;
 let dphi    = 0.0;
 let klock   = 100.0;
-let freqScale = 1.0;
+let freqScale = 2.0;
+/* coupling budget:  α_phys = N_coh² · Q · A(Δφ).  The visual gain alphaVis is
+   derived from how much of the real ~10^56 gap that budget closes. */
+let logNcoh = 20;      // log10 coherent-emitter count
+let logQ    = 12;      // log10 resonant quality factor
+let alphaVis = 8;      // normalized on-screen gain (set by updateBudget)
 
 /* ============================================================================
    Quaternion / vector helpers  (quaternions stored as [w,x,y,z])
@@ -228,16 +253,18 @@ function deriv(s, t){
   const nL=qrot(qL,[0,0,1]),  nR=qrot(qR,[0,0,1]);
   const wwL=qrot(qL,wlL),     wwR=qrot(qR,wlR);
 
-  /* QUATERNIONIC FORCE  F_i = α (n_i × ω_i) — the genuine field coupling.
+  /* QUATERNIONIC FORCE  F_i ∝ (n_i × ω_i) — the genuine field coupling.
      Its time-average (a non-reciprocal rectification of the stroke) is the
-     real thrust; we low-pass it (Tlp) to extract that steady magnitude. */
-  const Fq=addV(sclV(cross(nL,wwL),alpha), sclV(cross(nR,wwR),alpha));
+     real thrust; we low-pass it (Tlp) to extract that steady magnitude. The
+     coupling constant is no longer a free scalar: it is alphaVis, derived
+     from the N_coh / Q / asymmetry budget. */
+  const Fq=addV(cross(nL,wwL), cross(nR,wwR));
 
   /* heading: world +Z, yawed about +Y to steer.  Δφ ≠ 0 ⇒ the panels'
      phase asymmetry biases the field exchange, turning the craft. */
   const psi=steerGain*Math.sin(dphi)*t;
   const head=[Math.sin(psi),0,Math.cos(psi)];
-  const thrust=sclV(head, lenV(Tlp));     // steady drive, applied along heading
+  const thrust=sclV(head, lenV(Tlp)*alphaVis);   // drive along heading × budget gain
 
   /* lock geometry: panel target stations in the assembly frame */
   const lvL=qrot(qg,[-dlock,0,0]), lvR=qrot(qg,[dlock,0,0]);
@@ -351,8 +378,8 @@ const craft=new THREE.Group(); scene.add(craft);   // translated to CoM each fra
 const can=new THREE.Group();
 const canBody=new THREE.Mesh(
   new THREE.CylinderGeometry(0.5,0.5,1.5,40,1,false),
-  new THREE.MeshStandardMaterial({color:0x2f5f8f,metalness:0.55,roughness:0.35,
-    emissive:0x0a2236,emissiveIntensity:0.4}));
+  new THREE.MeshStandardMaterial({color:0x0b0c10,metalness:0.0,roughness:1.0,
+    emissive:0x000000}));   // ~0 reflectivity (matte absorber), per sighting
 can.add(canBody);
 // bright face marker so the tumble is unmistakable
 const marker=new THREE.Mesh(new THREE.SphereGeometry(0.17,18,18),
@@ -367,8 +394,8 @@ craft.add(can);
 function makePanel(markColor){
   const g=new THREE.Group();
   const slab=new THREE.Mesh(new THREE.BoxGeometry(2.0,0.6,0.05),
-    new THREE.MeshStandardMaterial({color:0x9aa6b8,metalness:0.3,roughness:0.6,
-      emissive:0x161c26,emissiveIntensity:0.5}));
+    new THREE.MeshStandardMaterial({color:0x0c0d11,metalness:0.0,roughness:1.0,
+      emissive:0x000000}));   // matte absorber (0 reflectivity) — Zel'dovich-style rotor
   g.add(slab);
   const mk=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.12,0.06),
     new THREE.MeshStandardMaterial({color:markColor,emissive:markColor,emissiveIntensity:0.6}));
@@ -541,7 +568,35 @@ function diagnostics(){
   const qL=qmul(qg,[S[25],S[26],S[27],S[28]]), qR=qmul(qg,[S[29],S[30],S[31],S[32]]);
   const FqL=cross(qrot(qL,[0,0,1]),qrot(qL,omegaLocal(simTime,0)));
   const FqR=cross(qrot(qR,[0,0,1]),qrot(qR,omegaLocal(simTime,dphi)));
-  return {quad:Math.sqrt(qn), asym:lenV(subV(FqL,FqR))*alpha};
+  return {quad:Math.sqrt(qn), asym:lenV(subV(FqL,FqR))*alphaVis};
+}
+
+/* ---- coupling budget: turn α into N_coh / Q / asymmetry, in real units ----
+   F_bare is the recoil an ordinary-matter version of the sighting would make
+   via mass-quadrupole radiation. The levers multiply it: coherence (N²),
+   resonance (Q). The readout shows how far short the budget falls, and the
+   on-screen gain alphaVis tracks the fraction of the (log) gap that is closed
+   — so dialing in coherence/Q visibly brings the craft to life. */
+function updateBudget(){
+  const w=2*Math.PI*PHYS.fHz;
+  const eps=0.15+0.85*Math.abs(Math.sin(dphi));                 // emission asymmetry A
+  const Fbare=PHYS.G*PHYS.Mp*PHYS.Mp*Math.pow(PHYS.L,4)*Math.pow(w,6)/(5*Math.pow(PHYS.c,6))*eps;
+  const Ftarget=PHYS.Mcraft*PHYS.aTarget;
+  const logAphys=2*logNcoh+logQ;                                // log10(N² · Q)
+  const Freal=Fbare*Math.pow(10,logAphys);
+  const logE=Math.log10(Ftarget/Fbare);                         // enhancement needed
+  const frac=Math.max(0,Math.min(1.2, logAphys/logE));
+  alphaVis=11*Math.max(0.03,frac);
+  const logNreq=0.5*(logE-logQ);
+  $('r_fbare').textContent=Fbare.toExponential(2)+' N';
+  $('r_ereq').textContent='10^'+logE.toFixed(1)+' ×';
+  $('r_abudget').textContent='10^'+logAphys.toFixed(0)+' ×';
+  $('r_freal').textContent=Freal.toExponential(2)+' N';
+  const gap=Ftarget/Freal;
+  const g=$('r_gap');
+  g.textContent = gap<=1 ? 'CLOSED ✓ ('+(1/gap).toExponential(1)+'× margin)' : gap.toExponential(1)+'× short';
+  g.style.color = gap<=1 ? 'var(--good)' : 'var(--warn)';
+  $('r_nreq').textContent='10^'+logNreq.toFixed(1)+'  @ Q=10^'+logQ.toFixed(0);
 }
 
 function updateHUD(){
@@ -566,6 +621,7 @@ function updateHUD(){
   const dg=diagnostics();
   $('r_quad').textContent=dg.quad.toFixed(3);
   $('r_asym').textContent=dg.asym.toFixed(3);
+  updateBudget();
 }
 
 /* ============================================================================
@@ -604,7 +660,8 @@ function bindSlider(id,label,fn,fmt){
   const upd=()=>{const v=parseFloat(s.value);fn(v);l.textContent=fmt(v);};
   s.addEventListener('input',upd); upd();
 }
-bindSlider('s_alpha','l_alpha',v=>alpha=v,v=>v.toFixed(1));
+bindSlider('s_ncoh','l_ncoh',v=>{logNcoh=v;updateBudget();},v=>v.toFixed(1));
+bindSlider('s_q','l_q',v=>{logQ=v;updateBudget();},v=>v.toFixed(1));
 bindSlider('s_dphi','l_dphi',v=>dphi=v,v=>v.toFixed(2)+' rad');
 bindSlider('s_klock','l_klock',v=>klock=v,v=>v.toFixed(0));
 bindSlider('s_freq','l_freq',v=>freqScale=v,v=>v.toFixed(2));
