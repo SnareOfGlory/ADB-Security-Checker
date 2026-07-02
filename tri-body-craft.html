@@ -139,14 +139,14 @@
   <div class="note">α is a <i>budget</i>: carrier f_c (ω⁶) × coherence (N²) ×
   resonance (Q) × asymmetry A(Δφ). Raise f_c first — at ~1 kHz the gap already
   closes. Caveat: F_bare assumes the full panel quadrupole amplitude is held at
-  f_c (an optimistic cap), so the closing frequency is a best case. The
-  0-reflectivity ~1 Hz rotor also fits a Zel'dovich absorptive superradiator —
-  a further lever not yet in the budget.</div>
+  f_c (an optimistic cap), so the closing frequency is a best case. A lossy
+  ~1 Hz rotor also fits a Zel'dovich superradiator (absorption in the operating
+  band is what counts, not visible color) — a lever not yet in the budget.</div>
 </div>
 
 <div id="legend" class="panel">
   <div><span class="swatch" style="background:#ff5a5a"></span>can face marker (watch it tumble)</div>
-  <div><span class="swatch" style="background:#1a1c22"></span>panels L/R &mdash; matte rotators (orange=L, cyan=R edge markers)</div>
+  <div><span class="swatch" style="background:#84888e"></span>panels L/R &mdash; matte gray rotators (orange=L, cyan=R edge markers)</div>
   <div><span class="swatch" style="background:#4fd1ff"></span>lock-coupling field (panel ↔ can)</div>
   <div><span class="swatch" style="background:#7CFFB2"></span>velocity &nbsp;·&nbsp; <span class="swatch" style="background:#ff7a3c"></span>momentum radiated into spacetime (backward)</div>
 </div>
@@ -403,8 +403,8 @@ const craft=new THREE.Group(); scene.add(craft);   // translated to CoM each fra
 const can=new THREE.Group();
 const canBody=new THREE.Mesh(
   new THREE.CylinderGeometry(0.5,0.5,1.5,40,1,false),
-  new THREE.MeshStandardMaterial({color:0x0b0c10,metalness:0.0,roughness:1.0,
-    emissive:0x000000}));   // ~0 reflectivity (matte absorber), per sighting
+  new THREE.MeshStandardMaterial({color:0x878b91,metalness:0.0,roughness:1.0,
+    emissive:0x000000}));   // matte drone-gray, zero specular, per sighting
 can.add(canBody);
 // bright face marker so the tumble is unmistakable
 const marker=new THREE.Mesh(new THREE.SphereGeometry(0.17,18,18),
@@ -419,8 +419,8 @@ craft.add(can);
 function makePanel(markColor){
   const g=new THREE.Group();
   const slab=new THREE.Mesh(new THREE.BoxGeometry(2.0,0.6,0.05),
-    new THREE.MeshStandardMaterial({color:0x0c0d11,metalness:0.0,roughness:1.0,
-      emissive:0x000000}));   // matte absorber (0 reflectivity) — Zel'dovich-style rotor
+    new THREE.MeshStandardMaterial({color:0x84888e,metalness:0.0,roughness:1.0,
+      emissive:0x000000}));   // matte drone-gray, zero specular, per sighting
   g.add(slab);
   const mk=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.12,0.06),
     new THREE.MeshStandardMaterial({color:markColor,emissive:markColor,emissiveIntensity:0.6}));
