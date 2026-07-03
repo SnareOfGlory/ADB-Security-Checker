@@ -158,7 +158,8 @@ hardware** (HTS coupling at minimum). The disagreement is only about how much.
    position at the timestamp fixes craft orientation and true separations),
    size/distance cross-check against the 443 m slant estimate.
 2. ~~Osprey nacelle position~~ — **answered: up (slow band)**; see §3.
-3. **Trailing geometry** — distance behind the Ospreys; did it depart with them?
+3. **Trailing geometry** — answered: right-echelon rear ("monitoring" station);
+   still open: **did it depart with them?**
 4. **Date/location** (witness's discretion) — V-22 squadrons are few; pairs at
    1,000 ft AGL fly known corridors. The sighting is *checkable* against
    military traffic in a way most sightings are not.
@@ -193,15 +194,53 @@ exclude mundane look-alikes (distant conventional aircraft, balloon); the
 real-time observation — tumble, rigidity, formation-keeping — is what the
 photo cannot carry and the witness can.
 
-**Open puzzles in the annotation set.**
-- Two different sky positions are marked across the frames: a hexagon at
-  px (1737, 1913) near the treeline in one frame, and a red "UAP/anomaly"
-  cross high in the sky in another. Same object in two frames (implying
-  motion between shots), or two objects in one frame? Needs witness input.
-- Annotations include "Amazon exact px" and an "83.09 ft anchor" — evidence of
-  a prior photogrammetry pass. Provenance and method wanted.
-- No Ospreys appear in the shared frames; their bearing relative to the frame
-  at the moment of capture is wanted.
+**Witness clarifications (received).**
+- The hexagon at px (1737, 1913) near the treeline **is one of the Ospreys** —
+  a known-dimension aircraft is in frame (see "The Osprey ruler" below).
+- The red "UAP/anomaly" cross marks the craft.
+- The "Amazon exact px" / "83.09 ft anchor" marks are the witness's own
+  photogrammetry pass — a self-devised "simulated parallax" range estimate.
+  Method write-up and numeric output requested (single-camera range solutions
+  for a moving sky object need an assumption somewhere; identifying which one
+  determines how to weight the result).
+- Station-keeping geometry: the craft trailed the Osprey pair **behind and
+  offset right — right-echelon rear**. Two readings, identical geometry:
+  (a) standard chase/observer station for a cooperative test asset;
+  (b) non-cooperative shadowing of military traffic. The photo cannot
+  distinguish intent; both are logged.
+
+**The Osprey ruler — the decisive measurement.**
+A V-22 spans 25.78 m across the proprotors (17.48 m fuselage). At ~1 arcmin/px
+native, its distance follows directly from its pixel width:
+**D ≈ 88,600 / W_px meters.**
+
+| Osprey pixel span | Osprey distance | If craft co-located, craft size = D·px·2.9e-4 |
+|---|---|---|
+| 200 px | 443 m | 20 px → 2.6 m (matches report) |
+| 89 px | 1.0 km | 20 px → 5.8 m |
+| 44 px | 2.0 km | 20 px → 11.6 m |
+| 15 px | 5.9 km | 20 px → 34.9 m |
+
+The witness reports the craft paced the Ospreys for the full sighting,
+trailing them — angular pacing over ~20 s from a fixed observer makes
+co-location in depth the natural reading. So one pixel measurement of the
+in-frame Osprey resolves the system:
+
+- **Osprey ≈ 200 px** → the 0.2 mi estimate holds and the craft is ~3 m as
+  reported. (Tension: a 200 px Osprey is an unmistakable aircraft shape, not
+  a treeline speck — the shared re-encoded frames *appear* to show a speck,
+  but they are too degraded to measure. Originals required.)
+- **Osprey ≈ 15–45 px** → the pair was 2–6 km out, and the co-located craft is
+  **6–35 m** — substantially larger than estimated, with the ground distance
+  being the soft variable. This would not impugn the account: absolute range
+  is the one quantity eyes cannot measure (a 3 m object at 443 m and a 12 m
+  object at 1.8 km subtend identical angles); every angular observation —
+  tumble rate, geometry, rigidity, formation-keeping — survives unchanged.
+  Note the physics consequence: at 6–35 m scale the panel areas grow as size²,
+  so the silent-thrust requirement *worsens* to ~10–40 kN even in the slow
+  band. The anomaly does not shrink with the recalibration; it grows.
+- **Second Osprey**: if also in frame, the pair's angular separation gives
+  formation spacing — an independent depth cross-check.
 
 **Forensics unlocked by the original files** (HEIC/JPG straight off the phone,
 committed to this repo untouched):
