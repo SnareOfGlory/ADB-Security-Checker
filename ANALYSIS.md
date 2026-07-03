@@ -41,8 +41,12 @@ V-22 speed bands are known:
 - **Helo/conversion-mode transit:** ~40–80 kt → 20–40 m/s
 - **Airplane-mode transit:** ~200–250 kt → 100–130 m/s
 
-Open question that selects the band: **were the Osprey nacelles up (helicopter) or
-forward (airplane)?**
+**Resolved by witness: nacelles were UP → slow band, 20–40 m/s.**
+Consequence: the smoothness problem (§4b) softens — passive inertia at
+M ≳ 500 kg hides the 1 Hz wobble below the eye's threshold — and the operative
+anomaly becomes the **silent-thrust problem (§4a)**: ~0.6–2.5 kN of continuous
+thrust with no propulsor, no exhaust, and no rotor noise, plus the contactless
+lock of §5 at its ~10⁴ A·m² (slow-band) requirement.
 
 ## 4. Core result: the steady-tumble paradox
 
@@ -153,14 +157,65 @@ hardware** (HTS coupling at minimum). The disagreement is only about how much.
    the square (emitter vs. artifact), shadow-vector photogrammetry (sun
    position at the timestamp fixes craft orientation and true separations),
    size/distance cross-check against the 443 m slant estimate.
-2. **Osprey nacelle position** (up vs. forward) — selects the speed band and
-   sets the anomaly's severity (§4b).
+2. ~~Osprey nacelle position~~ — **answered: up (slow band)**; see §3.
 3. **Trailing geometry** — distance behind the Ospreys; did it depart with them?
 4. **Date/location** (witness's discretion) — V-22 squadrons are few; pairs at
    1,000 ft AGL fly known corridors. The sighting is *checkable* against
    military traffic in a way most sightings are not.
 
-## 9. Epistemic status
+## 9. Photo set — preliminary findings (chat-shared copies, re-encoded)
+
+Four images received: two annotated wide frames, one clean wide frame, and a
+zoom crop of the object. Chat transfer strips EXIF and re-encodes pixels, so
+these findings are provisional pending the original files.
+
+**Scene consistency.** Paved lot, industrial-park warehouse on the horizon,
+mature eucalyptus/oak, deep-blue cloudless sky, hard shadows from a low-ish
+western sun — fully consistent with the reported ~16:20 local, calm conditions,
+Southern-California setting. (If this is San Diego County: MV-22 pairs at
+~1,000 ft AGL are routine Pendleton–Miramar traffic, which makes the escort
+context unremarkable rather than exotic — a point *for* the account's
+coherence.)
+
+**Angular-size cross-check — PASSED.** At ~26 mm-equivalent, an iPhone frame
+resolves ~1 arcmin/pixel native (4032 px across ~69°). The §2 geometry predicts
+the craft subtends ~23 arcmin → **~20–25 px**. The object in the zoom crop is
+in exactly that range. This check was capable of falsifying the reported
+size/distance combination and did not.
+
+**What the crop shows.** A bright, white-saturated, slightly elongated patch
+with a hint of darker structure at its margin — consistent with the witness
+report that the camera recorded a white feature the naked eye did not see
+(the NIR-bleed signature of §6 renders precisely as a blown-white patch).
+**What it cannot show at this resolution/re-encoding:** tri-body separation,
+panel gaps, or gap shadowing. A ~20 px re-encoded blob also does not by itself
+exclude mundane look-alikes (distant conventional aircraft, balloon); the
+real-time observation — tumble, rigidity, formation-keeping — is what the
+photo cannot carry and the witness can.
+
+**Open puzzles in the annotation set.**
+- Two different sky positions are marked across the frames: a hexagon at
+  px (1737, 1913) near the treeline in one frame, and a red "UAP/anomaly"
+  cross high in the sky in another. Same object in two frames (implying
+  motion between shots), or two objects in one frame? Needs witness input.
+- Annotations include "Amazon exact px" and an "83.09 ft anchor" — evidence of
+  a prior photogrammetry pass. Provenance and method wanted.
+- No Ospreys appear in the shared frames; their bearing relative to the frame
+  at the moment of capture is wanted.
+
+**Forensics unlocked by the original files** (HEIC/JPG straight off the phone,
+committed to this repo untouched):
+1. **Saturation test** — if the white patch clips all three channels while the
+   sky around it doesn't, that's the active-NIR/hot-source signature (§6);
+   a gray-body reflection wouldn't clip.
+2. **PSF comparison** — edge sharpness of the object vs. the warehouse
+   roofline separates "small and near" from "large and far" at equal blur.
+3. **Pixel measurement** — object extent to ±1 px → size/distance solve to
+   ~10%, testable against the 3 m / 443 m claim.
+4. **EXIF** — timestamp (sun position → shadow-vector photogrammetry), focal
+   length, exposure triad.
+
+## 10. Epistemic status
 
 The witness record is taken as given and passes its internal consistency
 checks (§2). Derived anomalies (§4–5) are order-of-magnitude aerodynamics and
