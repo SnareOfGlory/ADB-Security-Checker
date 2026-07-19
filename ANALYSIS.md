@@ -19,7 +19,7 @@ could produce them.
 | Acoustics | Complete silence (caveat: two Ospreys at ~0.2 mi dominate the soundscape — masking limits this datum) |
 | Emissions | No glow, corona, or heat shimmer to the naked eye |
 | Photo | One photograph: shows shadowing in the panel–fuselage gaps (separation evidence) and a large white square not visible to the naked eye |
-| Conditions | ~16:20 local, no notable wind, duration ≤ 20 s, ground distance ~0.2 mi, altitude ~1,000 ft AGL |
+| Conditions | **2023-09-28, 16:50 PDT (EXIF-fixed; witness recalled ~16:20)**, no notable wind, duration ≤ 20 s; witness range estimates superseded by §9 measurement |
 
 ## 2. Sighting geometry — does the account self-check?
 
@@ -293,6 +293,27 @@ committed to this repo untouched):
    length, exposure triad.
 
 ## 10. ADS-B correlation (witness-sourced flight logs)
+
+> **CORRECTION (supersedes the correlation below).** The photo EXIF reads
+> **Date taken 2023-09-28, 4:50 PM** (local). The replay pulls below were run
+> on **2023-09-08 at 16:50 UTC (= 09:50 PDT)** — a date transposition
+> (09-08 vs 09-28) compounded by a UTC/local conflation (16:50 UTC looks like
+> "4:50 PM" but is 9:50 AM PDT). **Every track in this section — including
+> PA-28 N255CB — flew 20 days before the photograph and is void for
+> correlation.** The specific-Piper hypothesis is unsupported by placement;
+> the hypothesis *class* (some aircraft on the sight line) remains open and
+> testable. Correct replay target: **2023-09-28, 23:45–23:55 UTC**, within
+> ~10 km of the camera fix below. The section is retained as a record of the
+> method dry-run, which exercised the full pipeline successfully.
+
+**Camera fix (EXIF + witness DMS, conversion verified):**
+32.941250°N, 117.023378°W, alt 264.4 m (867 ft MSL) — Kirkham Way /
+Scripps Poway Parkway area, Poway, CA. iPhone 13 wide, 26 mm equiv
+(3024×4032, ~1.03 arcmin/px). Exposure 1/2309 s, f/1.6, ISO 50 →
+EV(100) ≈ 13.5, consistent with clear late-afternoon sun. Computed sun at
+capture: **azimuth ≈ 250°, elevation ≈ 22°** — on file for the
+shadow-vector solve. EXIF also validates the witness's remembered time
+(~4:20 PM recalled vs 4:50 PM actual) and afternoon lighting.
 
 Witness pulled ADS-B replay for the sighting date — now fixed as
 **2023-09-08**, area **Sycamore Canyon / Goodan Ranch County Preserve,
