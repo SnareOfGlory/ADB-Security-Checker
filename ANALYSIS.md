@@ -41,7 +41,11 @@ V-22 speed bands are known:
 - **Helo/conversion-mode transit:** ~40–80 kt → 20–40 m/s
 - **Airplane-mode transit:** ~200–250 kt → 100–130 m/s
 
-**Resolved by witness: nacelles were UP → slow band, 20–40 m/s.**
+**Superseded by ADS-B (§10.1): the pair was doing 233–234 kt — the FAST band.**
+The nacelles-up recollection was the soft detail (at 234 kt a V-22 flies
+nacelles-forward; conversion happens as it slows). If the object truly paced
+the pair, §4's severe branch is operative.
+~~Resolved by witness: nacelles were UP → slow band, 20–40 m/s.~~
 Consequence: the smoothness problem (§4b) softens — passive inertia at
 M ≳ 500 kg hides the 1 Hz wobble below the eye's threshold — and the operative
 anomaly becomes the **silent-thrust problem (§4a)**: ~0.6–2.5 kN of continuous
@@ -369,6 +373,57 @@ the EXIF capture time yields predicted pixels:
 Inputs still needed to run it: photo EXIF time; camera standpoint lat/lon;
 per-aircraft lat/lon/alt at that time (replay screenshots with the info panel
 open suffice); and the replay scrubbed to whichever window EXIF selects.
+
+### 10.1 The correct-date pull — RESULTS (2023-09-28, 23:50 UTC)
+
+Witness re-ran the replay on the EXIF date/time. In the 23:45–23:55 UTC
+window near the camera: **one military track and two distant GA aircraft.**
+
+**Callsign UGLY** — DB-flagged military, registration/type unassigned,
+squawk 4672, ADS-B source: 233–234 kt groundspeed, descending −2,048 ft/min
+through 3,525→3,225 ft (WGS84), track ~235° (east-to-west toward MCAS
+Miramar), passing directly over the Sycamore Canyon area during the EXIF
+minute. Computed from the camera fix:
+
+| Time (UTC) | Azimuth | Elevation | Slant range |
+|---|---|---|---|
+| 23:50:10 | 79.5° | 11.1° | 4.20 km |
+| 23:50:20 | 86.5° | 12.6° | 3.30 km |
+
+**Identification of the witnessed pair — three independent matches:**
+1. **Elevation**: UGLY at 11–13° vs. the photographed treeline aircraft at
+   ~15.4° (±2.5°) — within combined errors.
+2. **Size**: the treeline object's 20–28 px at UGLY's *ADS-B-measured* range
+   implies a 19–34 m span, bracketing the **V-22's 25.78 m** (excludes H-1
+   at ~15 m and KC-130 at 40 m).
+3. **Speed**: 233–234 kt matches V-22 airplane-mode cruise (~240 kt);
+   it exceeds H-1 limits.
+
+Conclusion: **the witnessed pair was almost certainly a V-22 flight —
+"UGLY" — with the lead broadcasting and the wingman ADS-B-dark** (standard
+two-ship; this resolves the witness's own earlier puzzle "ADS-B shows one,
+but there were two"). The witness's aircraft identification is vindicated;
+only the speed/nacelle recollection needed revision.
+
+**The white object is NOT UGLY:** its sight line sits **14.1° above**
+UGLY's — exclusion requires <1°. The only other broadcasters (two GA
+aircraft) were west of the camera, behind the eastward-facing frame.
+Airspace context sharpens this: the site lies inside the San Diego
+**Mode C veil**, where ADS-B Out is mandatory for powered civil aircraft —
+the remaining non-broadcasting categories at the white object's position are
+military aircraft, no-electrical-system aircraft (balloons/gliders), birds,
+or the anomaly itself.
+
+**Recalibration with ADS-B range (if the object trailed the pair):**
+size 7.7–17.1 m and ~920 m above the pair — independently consistent with
+the §9 Osprey-ruler estimates (5.6–17 m; ~850 m high perch) derived before
+UGLY's range was known. Two methods, one answer: **a ~10 m-class object
+holding a high observer's station above a V-22 flight at ~230 kt.**
+
+**To close the sight-line test:** (1) azimuth solve — the Amazon-building
+anchor's geo-coordinates + its pixel in the original frame; (2) EXIF seconds
+(`exiftool -DateTimeOriginal -SubSecTimeOriginal photo.jpg`) to pin UGLY's
+along-track position at the exact capture instant; (3) original files.
 
 ## 11. Epistemic status
 
