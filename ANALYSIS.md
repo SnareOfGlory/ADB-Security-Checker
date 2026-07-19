@@ -242,6 +242,44 @@ in-frame Osprey resolves the system:
 - **Second Osprey**: if also in frame, the pair's angular separation gives
   formation spacing — an independent depth cross-check.
 
+**Osprey ruler — APPLIED (provisional; measured on chat re-encoded copies).**
+The witness supplied the frame with the Osprey identified at px (1737, 1913).
+Displayed frames are ~1493 px wide → downscale ≈ 2.02 from 3024×4032.
+Pixel reads with uncertainty: Osprey silhouette 20–28 original px; craft speck
+8–14 original px; horizon row and object rows read for elevation angles.
+
+Results:
+- **Osprey distance: ~2–4.5 km** (span-based 3.1–4.4 km; fuselage-on 2.1–3.0
+  km). The claimed 443 m would make the Osprey ~200 px — **excluded by an
+  order of magnitude**, far beyond blur/read errors.
+- **Craft size (co-located, blur-corrected ratio 0.22–0.66): ≈ 5.6–17 m** —
+  roughly **10 m class**, not 3 m. The ratio method is downscale-invariant
+  (both objects shrink identically), so this survives the re-encoding.
+- **Elevation cross-check:** Osprey ≈ 15.4°, craft ≈ 26.7°. Two consistent
+  solutions: **(A)** co-located in ground range → the craft sat **~850 m above
+  the pair** — a literal high perch behind and offset right, matching the
+  witness's "monitoring position" description; **(B)** same altitude as the
+  pair → the craft would be at ~2 km, *closer* than the Ospreys, contradicting
+  "following behind them." The witness account selects (A).
+- The witness's 0.2 mi / 1,000 ft estimate was the output of their
+  single-camera parallax attempt; the in-frame ruler supersedes it. No mark
+  against the account: absolute range is unmeasurable by eye, and every
+  angular observation (tumble, geometry, rigidity, pacing) survives
+  recalibration unchanged.
+
+**Physics consequence of the ~10 m recalibration.** Drag scales as size²:
+at 10 m scale the slow-band silent-thrust requirement rises from ~0.6–2.5 kN
+to **~7–28 kN**, and the panel–fuselage gap scales to ~5–6 m. Transmitting
+kN-class loads contactlessly across 5–6 m (F ∝ m²/r⁴) needs magnetic moments
+~10⁶–10⁷ A·m² — beyond any deployed magnet technology by orders. The
+recalibration therefore *strengthens* the anomaly and further strains the
+conventional-hardware branch (§7A) relative to the field-coupled branch (§7B).
+
+Remaining tightening (original untouched files, committed to the repo):
+±1 px reads → size to ~10%; twin-nacelle structure check on the Osprey
+silhouette (vs. bird); three-channel saturation test on the craft's white
+patch; EXIF timestamp for shadow-vector solve.
+
 **Forensics unlocked by the original files** (HEIC/JPG straight off the phone,
 committed to this repo untouched):
 1. **Saturation test** — if the white patch clips all three channels while the
