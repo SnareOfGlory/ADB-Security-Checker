@@ -292,7 +292,64 @@ committed to this repo untouched):
 4. **EXIF** — timestamp (sun position → shadow-vector photogrammetry), focal
    length, exposure triad.
 
-## 10. Epistemic status
+## 10. ADS-B correlation (witness-sourced flight logs)
+
+Witness pulled ADS-B replay for the sighting date — now fixed as
+**2023-09-08**, area **Sycamore Canyon / Goodan Ranch County Preserve,
+San Diego County** (adjacent to MCAS Miramar). Findings from the screenshots:
+
+| Track | Aircraft | Operator | State shown |
+|---|---|---|---|
+| N449RC | 1973 Bell UH-1 Huey | County of San Diego | 42 kt, 1,200 ft, orbiting the preserve |
+| N710SD | AS-350 | SDPD Air Support | 87 kt, 1,200 ft, in the area |
+| (yellow icon) | Piper PA-28 | — | trailing the helicopter work, similar station to the reported craft |
+
+Key observations:
+- **No V-22 appears in ADS-B — which is expected, not exculpatory.** Military
+  Ospreys routinely fly ADS-B-dark, and MCAS Miramar (which bases MV-22
+  squadrons) is immediately adjacent. ADS-B absence neither confirms nor
+  denies the witnessed pair.
+- **Time conflict:** the screenshots show 09:55–09:59 PDT (16:55 UTC);
+  the witness recalled ~16:20 PDT. Either the sighting was morning (3-year
+  time memory is soft; photo shadow geometry is compatible with both, as sun
+  elevation is similar) or the replay must be scrubbed to 23:15–23:30 UTC.
+  **The photo EXIF timestamp resolves this decisively.**
+- The UH-1's 42 kt = 21.6 m/s sits dead-center in the slow band (§3).
+
+**The PA-28 hypothesis — honest scoring.** The witness surfaced this
+candidate themselves ("a P28 Piper trails them in a similar way the craft I
+saw did, but what I saw was so crazy and didn't look like a Piper").
+
+*Fits:* trailing/monitoring station matches; a white PA-28 at 2–4 km renders
+gray-silhouette to the adapted eye but can blow out white on a sensor
+(sky-contrast physics — matches the white-in-photo/gray-to-eye report);
+10.7 m wingspan sits inside the 5.6–17 m ratio band (§9); low-wing aircraft
+photographed soft can show shadowed wing roots that mimic body/panel "gaps";
+wings + fuselage = a three-body gestalt at the resolution limit.
+
+*Does not fit:* a light aircraft **cannot present a continuous ~1 Hz tumble**
+— orbit aspect changes are ~minute-scale, prop flicker is ~80 Hz; nothing
+about a PA-28 produces rotating-panel motion over 20 s. Nor does it explain
+"two Ospreys, nacelles up" if nacelle structure was resolved. The core
+kinematic percept remains unexplained by this candidate.
+
+**Decisive test — the sight-line overlay (`tools/sightline.js`).**
+ADS-B gives per-second lat/lon/alt. The camera position is recoverable (the
+witness already georeferenced the Amazon building). The photo gives pixel
+positions for both objects. Projecting each ADS-B aircraft into the frame at
+the EXIF capture time yields predicted pixels:
+- separation < 1° from the white object → **same line of sight; mundane
+  identification wins**;
+- separation > 3° for every broadcaster → **the photographed object is none
+  of the broadcasting traffic**, with all mundane aircraft accounted for
+  elsewhere in the frame — a substantially *stronger* anomaly record than
+  before the correlation was attempted.
+
+Inputs still needed to run it: photo EXIF time; camera standpoint lat/lon;
+per-aircraft lat/lon/alt at that time (replay screenshots with the info panel
+open suffice); and the replay scrubbed to whichever window EXIF selects.
+
+## 11. Epistemic status
 
 The witness record is taken as given and passes its internal consistency
 checks (§2). Derived anomalies (§4–5) are order-of-magnitude aerodynamics and
