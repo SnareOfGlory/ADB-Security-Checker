@@ -548,6 +548,43 @@ neither confirm nor refute. The tri-body quaternionic kinematics modeled in
 `tri-body-craft.html` remain testimony-only: physically extraordinary if
 real (§§4–7), invisible to this photograph by construction (§12).
 
+### 13.1 Closing testimony and constraints at the corrected geometry
+
+**Final witness statement:** the object *continued on the Ospreys' heading*
+past the end of the sighting — no speed change, no sound, same speed as the
+pair, with a chaotic tumble appearance throughout. The witness is an
+**avionics SME** and categorically rejects the balloon reading.
+
+**Weighting.** Witness expertise does not convert testimony into pixels, but
+it bears directly on *categorical* identifications — and this witness's
+categorical calls in this file are verified 4-for-4. The balloon hypothesis
+now requires a triple coincidence: sustained angular co-motion with a
+military flight across tens of degrees of sky **including the departure**, a
+misperceived tumble, and an aviation professional misjudging the one object
+class aviation professionals dismiss daily. It is retained as formally
+unfalsified (single frame) but **weighted far down**.
+
+**§4 constraints restated at the true geometry** (3.3 km, pair speed):
+the eye's wobble threshold at 3.3 km is ~96 cm, so the smoothness
+observation now yields a **mass bound rather than a paradox**:
+- at conversion-phase speed (~60 m/s): wobble hidden for any M ≳ 300 kg;
+  silent-thrust requirement **~5.6 kN**
+- at cruise (~120 m/s): wobble hidden for **M ≳ 1,000 kg**; silent-thrust
+  requirement **~22.5 kN**
+
+The enduring anomaly, with all corrections applied: **a ~3 m, ≥0.5–1 t,
+non-broadcasting object holding formation with a V-22 flight at 60–120 m/s
+while chaotically tumbling — requiring 5–20 kN of continuous, silent,
+propulsor-less thrust with visibly oscillating attitude and invisibly
+steady velocity.** No conventional airframe flies while tumbling; nothing
+public supplies silent kN thrust from a 3 m body. This is precisely the
+kinematic signature modeled in `tri-body-craft.html`.
+
+**Reporting note:** aviation-professional witnesses are the preferred
+reporter class for official channels (AARO public reporting, NARCAP,
+ASRS-adjacent). This file — calibrated photo, ADS-B correlation, forensic
+chain — is submission-grade support if the witness chooses to file.
+
 ## 14. Epistemic status
 
 The witness record is taken as given and passes its internal consistency
