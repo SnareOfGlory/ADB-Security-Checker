@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tri-Body Aerial Craft — Quaternionic Field-Drive Simulation</title>
+<style>
+  :root{
+    --bg:#05070d; --panel:rgba(12,18,30,0.82); --edge:rgba(90,150,220,0.25);
+    --txt:#cfe2ff; --dim:#7e93b3; --accent:#4fd1ff; --warn:#ff8a5c; --good:#7CFFB2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);
+    font-family:"SFMono-Regular",ui-monospace,Menlo,Consolas,monospace;color:var(--txt);}
+  #app{position:fixed;inset:0;}
+  canvas{display:block;}
+  .panel{
+    position:absolute;background:var(--panel);border:1px solid var(--edge);
+    border-radius:10px;backdrop-filter:blur(6px);padding:12px 14px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.45);font-size:12px;line-height:1.5;
+  }
+  #readout{top:14px;left:14px;width:288px;}
+  #controls{top:14px;right:14px;width:268px;max-height:calc(100% - 28px);overflow:auto;}
+  #legend{bottom:14px;left:14px;width:288px;font-size:11px;color:var(--dim);}
+  h1{font-size:13px;margin:0 0 8px;color:#fff;letter-spacing:.5px;font-weight:600;}
+  h2{font-size:11px;margin:14px 0 6px;color:var(--accent);text-transform:uppercase;
+    letter-spacing:1px;border-bottom:1px solid var(--edge);padding-bottom:4px;}
+  .row{display:flex;justify-content:space-between;gap:8px;}
+  .row .k{color:var(--dim);} .row .v{color:#fff;text-align:right;font-variant-numeric:tabular-nums;}
+  .vec{color:#bfe0ff;}
+  .sld{margin:9px 0;}
+  .sld label{display:flex;justify-content:space-between;color:var(--dim);font-size:11px;margin-bottom:3px;}
+  .sld label b{color:#fff;font-weight:500;}
+  input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:3px;
+    background:linear-gradient(90deg,var(--accent),#2a4a7a);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;
+    border-radius:50%;background:#fff;border:2px solid var(--accent);cursor:pointer;}
+  .btns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  button{flex:1 1 auto;background:rgba(40,70,110,0.55);color:var(--txt);border:1px solid var(--edge);
+    border-radius:6px;padding:6px 8px;font-size:11px;cursor:pointer;font-family:inherit;transition:.15s;}
+  button:hover{background:rgba(70,120,180,0.7);color:#fff;}
+  button.active{background:var(--accent);color:#03121f;border-color:var(--accent);font-weight:600;}
+  .tog{display:flex;align-items:center;gap:7px;margin:5px 0;cursor:pointer;color:var(--dim);font-size:11px;}
+  .tog input{accent-color:var(--accent);width:14px;height:14px;}
+  .swatch{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
+  .note{color:var(--dim);font-size:10.5px;margin-top:8px;line-height:1.45;}
+  .big{font-size:13px;color:var(--good);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="readout" class="panel">
+  <h1>TRI-BODY CRAFT · TELEMETRY</h1>
+  <div class="row"><span class="k">sim time</span><span class="v" id="r_t">0.00 s</span></div>
+  <div class="row"><span class="k">speed</span><span class="v big" id="r_speed">0.000</span></div>
+  <div class="row"><span class="k">velocity v₀</span><span class="v vec" id="r_vel">0, 0, 0</span></div>
+  <div class="row"><span class="k">CoM position</span><span class="v vec" id="r_pos">0, 0, 0</span></div>
+  <h2>Can attitude q₀ (w,x,y,z)</h2>
+  <div class="row"><span class="k">quat</span><span class="v vec" id="r_qcan">1, 0, 0, 0</span></div>
+  <div class="row"><span class="k">body ω₀</span><span class="v vec" id="r_wcan">0, 0, 0</span></div>
+  <h2>Panel local angular velocity</h2>
+  <div class="row"><span class="k" style="color:#ffb27a">ω<sub>L,local</sub></span><span class="v vec" id="r_wl">0, 0, 0</span></div>
+  <div class="row"><span class="k" style="color:#7adcff">ω<sub>R,local</sub></span><span class="v vec" id="r_wr">0, 0, 0</span></div>
+  <h2>Spacetime channel</h2>
+  <div class="row"><span class="k">craft momentum |p|</span><span class="v" id="r_pcraft">0.000</span></div>
+  <div class="row"><span class="k">radiated → spacetime |P|</span><span class="v" id="r_pfield">0.000</span></div>
+  <div class="row"><span class="k">p_craft + P_field</span><span class="v" id="r_pcheck">0.0e+0</span></div>
+  <div class="row"><span class="k">mass quadrupole |Q|</span><span class="v" id="r_quad">0.000</span></div>
+  <div class="row"><span class="k">emission asym A(Δφ)</span><span class="v" id="r_asym">0.000</span></div>
+  <h2>Coupling budget &nbsp;α = N²·Q·A</h2>
+  <div class="row"><span class="k">F_bare (ordinary)</span><span class="v" id="r_fbare">0 N</span></div>
+  <div class="row"><span class="k">freq lever (vs 1 Hz)</span><span class="v" id="r_flev">10^0 ×</span></div>
+  <div class="row"><span class="k">enhancement needed</span><span class="v" id="r_ereq">0 ×</span></div>
+  <div class="row"><span class="k">your budget N²·Q</span><span class="v" id="r_abudget">0 ×</span></div>
+  <div class="row"><span class="k">thrust achieved</span><span class="v" id="r_freal">0 N</span></div>
+  <div class="row"><span class="k">gap remaining</span><span class="v" id="r_gap">—</span></div>
+  <div class="row"><span class="k">need log₁₀N_coh</span><span class="v" id="r_nreq">—</span></div>
+</div>
+
+<div id="controls" class="panel">
+  <h1>FIELD-DRIVE CONTROLS</h1>
+  <div class="sld">
+    <label>N_coh &mdash; coherent emitters (log₁₀) <b id="l_ncoh">20</b></label>
+    <input id="s_ncoh" type="range" min="0" max="30" step="0.5" value="20">
+  </div>
+  <div class="sld">
+    <label>Q &mdash; resonant quality (log₁₀) <b id="l_q">12</b></label>
+    <input id="s_q" type="range" min="0" max="18" step="0.5" value="12">
+  </div>
+  <div class="sld">
+    <label>Δφ &mdash; panel phase offset (steer) <b id="l_dphi">0.00 rad</b></label>
+    <input id="s_dphi" type="range" min="-1.57" max="1.57" step="0.01" value="0">
+  </div>
+  <div class="sld">
+    <label>k_lock &mdash; lock stiffness <b id="l_klock">100</b></label>
+    <input id="s_klock" type="range" min="10" max="300" step="1" value="100">
+  </div>
+  <div class="sld">
+    <label>visible tumble rate (×) <b id="l_freq">2.00</b></label>
+    <input id="s_freq" type="range" min="0.2" max="3" step="0.01" value="2">
+  </div>
+
+  <h2>Sighting assumptions</h2>
+  <div class="sld">
+    <label>carrier f_c — the ω⁶ lever <b id="l_fc">1 Hz</b></label>
+    <input id="s_fc" type="range" min="0" max="14" step="0.5" value="0">
+  </div>
+  <div class="sld">
+    <label>panel mass M_p (kg) <b id="l_mp">200</b></label>
+    <input id="s_mp" type="range" min="10" max="2000" step="10" value="200">
+  </div>
+  <div class="sld">
+    <label>craft mass M (kg) <b id="l_mcraft">1500</b></label>
+    <input id="s_mcraft" type="range" min="100" max="5000" step="50" value="1500">
+  </div>
+  <div class="sld">
+    <label>target maneuver <b id="l_g">1.0 g</b></label>
+    <input id="s_g" type="range" min="0.1" max="30" step="0.1" value="9.81">
+  </div>
+
+  <h2>Playback</h2>
+  <div class="btns">
+    <button id="b_pause">⏸ Pause</button>
+    <button id="b_reset">↺ Reset</button>
+  </div>
+  <h2>Camera</h2>
+  <div class="btns">
+    <button id="b_default" class="active">3/4 View</button>
+    <button id="b_above">Above</button>
+    <button id="b_side">Side</button>
+    <button id="b_chase">Chase</button>
+  </div>
+  <h2>Overlays</h2>
+  <label class="tog"><input type="checkbox" id="t_field" checked> field momentum arrow</label>
+  <label class="tog"><input type="checkbox" id="t_trail" checked> trajectory trail</label>
+  <label class="tog"><input type="checkbox" id="t_glow" checked> lock-coupling glow</label>
+  <label class="tog"><input type="checkbox" id="t_vel" checked> velocity arrow</label>
+  <div class="note">α is a <i>budget</i>: carrier f_c (ω⁶) × coherence (N²) ×
+  resonance (Q) × asymmetry A(Δφ). Raise f_c first — at ~1 kHz the gap already
+  closes. Caveat: F_bare assumes the full panel quadrupole amplitude is held at
+  f_c (an optimistic cap), so the closing frequency is a best case. A lossy
+  ~1 Hz rotor also fits a Zel'dovich superradiator (absorption in the operating
+  band is what counts, not visible color) — a lever not yet in the budget.</div>
+</div>
+
+<div id="legend" class="panel">
+  <div><span class="swatch" style="background:#ff5a5a"></span>can face marker (watch it tumble)</div>
+  <div><span class="swatch" style="background:#84888e"></span>panels L/R &mdash; matte gray rotators (orange=L, cyan=R edge markers)</div>
+  <div><span class="swatch" style="background:#4fd1ff"></span>lock-coupling field (panel ↔ can)</div>
+  <div><span class="swatch" style="background:#7CFFB2"></span>velocity &nbsp;·&nbsp; <span class="swatch" style="background:#ff7a3c"></span>momentum radiated into spacetime (backward)</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+/* ============================================================================
+   TRI-BODY AERIAL CRAFT — kinematic + dynamic quaternionic field-drive
+   ----------------------------------------------------------------------------
+   Bodies:  Can (fuselage, passenger) + Panels L,R (active quaternionic rotors)
+   World frame:  +Z forward (flight),  +Y up (level),  ±X = panel stations
+   Integration:  RK4, dt = 0.01, quaternions renormalised every step
+   ========================================================================== */
+
+/* ---------- physical constants ---------- */
+const Mcan   = 10.0;          // can mass
+const Mpanel = 3.0;           // each panel
+const Mtot   = Mcan + 2*Mpanel;
+const dlock  = 1.5;           // station distance on can x-axis
+const Ix = 2.5, Iy = 2.5, Iz = 1.25;   // can cylinder inertia (r=0.5,h=1.5,M=10)
+const cdamp  = 4.0;           // lock relative-velocity damping
+const steerGain = 0.05;       // heading yaw-rate per unit sin(Δφ)  (steering)
+const lpRate = 1.5;           // low-pass rate that extracts the steady thrust
+const dt = 0.01;
+
+/* ---------- real-world budget assumptions (editable; anchored to sighting) ----
+   Note the split: the VISIBLE tumble is ~1 Hz (steering envelope), but the
+   radiating quantity is a high-frequency coherent CARRIER, f_c. Because mass-
+   quadrupole power ∝ ω⁶, f_c is by far the strongest lever — a GHz carrier is
+   ~10^54 louder than a 1 Hz one for the same quadrupole amplitude. */
+const PHYS = {
+  G:6.674e-11, c:2.998e8,   // SI constants
+  Mp:200,        // panel mass (kg)
+  L:2.0,         // panel length (m)
+  Mcraft:1500,   // craft mass (kg)
+  aTarget:9.81,  // target maneuver accel (m/s²)
+  logFc:0        // log10 carrier frequency (Hz); 0 = the naive 1 Hz assumption
+};
+
+/* ---------- live (slider-driven) parameters ---------- */
+let dphi    = 0.0;
+let klock   = 100.0;
+let freqScale = 2.0;
+/* coupling budget:  α_phys = N_coh² · Q · A(Δφ).  The visual gain alphaVis is
+   derived from how much of the real ~10^56 gap that budget closes. */
+let logNcoh = 20;      // log10 coherent-emitter count
+let logQ    = 12;      // log10 resonant quality factor
+let alphaVis = 8;      // normalized on-screen gain (set by updateBudget)
+
+/* ============================================================================
+   Quaternion / vector helpers  (quaternions stored as [w,x,y,z])
+   ========================================================================== */
+function qmul(a,b){return[
+  a[0]*b[0]-a[1]*b[1]-a[2]*b[2]-a[3]*b[3],
+  a[0]*b[1]+a[1]*b[0]+a[2]*b[3]-a[3]*b[2],
+  a[0]*b[2]-a[1]*b[3]+a[2]*b[0]+a[3]*b[1],
+  a[0]*b[3]+a[1]*b[2]-a[2]*b[1]+a[3]*b[0]];}
+function qconj(q){return[q[0],-q[1],-q[2],-q[3]];}
+function qrot(q,v){           // rotate vec3 v by quaternion q
+  const w=q[0],x=q[1],y=q[2],z=q[3];
+  const tx=2*(y*v[2]-z*v[1]), ty=2*(z*v[0]-x*v[2]), tz=2*(x*v[1]-y*v[0]);
+  return[ v[0]+w*tx+(y*tz-z*ty),
+          v[1]+w*ty+(z*tx-x*tz),
+          v[2]+w*tz+(x*ty-y*tx)];}
+function qderiv(q,w){          // 0.5 * q ⊗ [0,w]
+  const r=qmul(q,[0,w[0],w[1],w[2]]);
+  return[0.5*r[0],0.5*r[1],0.5*r[2],0.5*r[3]];}
+const addV=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const subV=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const sclV=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const lenV=a=>Math.hypot(a[0],a[1],a[2]);
+
+/* ============================================================================
+   STATE VECTOR  (Float64Array, 43 slots)
+     0- 2 r0     3- 5 v0     6- 9 p0(quat)  10-12 w0(body)
+    13-15 rL    16-18 vL    19-21 rR        22-24 vR
+    25-28 pL    29-32 pR    33-36 qg        37-39 fieldP
+    40-42 Tlp   (low-passed net quaternionic thrust -> steady drive magnitude)
+   ========================================================================== */
+const NS = 43;
+let S = new Float64Array(NS);
+let simTime = 0;
+
+function resetState(){
+  S = new Float64Array(NS);
+  S[6]=1;                       // p0 = identity
+  S[13]=-dlock; S[19]=dlock;    // panels at stations
+  S[25]=1; S[29]=1; S[33]=1;    // pL,pR,qg identity
+  S[10]=0.6; S[11]=0.2; S[12]=1.5;   // seed can tumble (free spin)
+  simTime = 0;
+  trail.length = 0;
+}
+
+/* time-varying local angular velocity — the panel's quaternionic stroke.
+   A non-reciprocal Lissajous: ωx sweeps at 2f while ωy,ωz share 3f with a
+   +90° lag, so the rotation axis genuinely roams 3D AND the n×ω coupling
+   rectifies to a steady (non-zero time-average) thrust along the panel
+   normal. Commensurate harmonics keep the stroke strictly periodic, so the
+   drive is clean rather than wandering. */
+function omegaLocal(t, phase){
+  const f = freqScale;
+  return [ 0.6*Math.sin(2*f*t + phase),
+           1.0*Math.sin(3*f*t + phase + Math.PI/2),
+           1.0*Math.sin(3*f*t + phase) ];
+}
+
+/* ---------- derivative of full state ---------- */
+let lastThrust=[0,0,0], lastHeading=[0,0,1];   // cached for rendering/HUD
+
+function deriv(s, t){
+  const d = new Float64Array(NS);
+  const r0=[s[0],s[1],s[2]],   v0=[s[3],s[4],s[5]];
+  const p0=[s[6],s[7],s[8],s[9]], w0=[s[10],s[11],s[12]];
+  const rL=[s[13],s[14],s[15]], vL=[s[16],s[17],s[18]];
+  const rR=[s[19],s[20],s[21]], vR=[s[22],s[23],s[24]];
+  const pL=[s[25],s[26],s[27],s[28]], pR=[s[29],s[30],s[31],s[32]];
+  const qg=[s[33],s[34],s[35],s[36]];
+  const Tlp=[s[40],s[41],s[42]];
+
+  /* panel local angular velocities (R carries the steering phase offset Δφ) */
+  const wlL=omegaLocal(t,0), wlR=omegaLocal(t,dphi);
+
+  /* world attitudes  q_i = q_g ⊗ p_i */
+  const qL=qmul(qg,pL), qR=qmul(qg,pR);
+
+  /* face normals (panel local +Z) and world-frame angular velocities */
+  const nL=qrot(qL,[0,0,1]),  nR=qrot(qR,[0,0,1]);
+  const wwL=qrot(qL,wlL),     wwR=qrot(qR,wlR);
+
+  /* QUATERNIONIC FORCE  F_i ∝ (n_i × ω_i) — the genuine field coupling.
+     Its time-average (a non-reciprocal rectification of the stroke) is the
+     real thrust; we low-pass it (Tlp) to extract that steady magnitude. The
+     coupling constant is no longer a free scalar: it is alphaVis, derived
+     from the N_coh / Q / asymmetry budget. */
+  const Fq=addV(cross(nL,wwL), cross(nR,wwR));
+
+  /* heading: world +Z, yawed about +Y to steer.  Δφ ≠ 0 ⇒ the panels'
+     phase asymmetry biases the field exchange, turning the craft. */
+  const psi=steerGain*Math.sin(dphi)*t;
+  const head=[Math.sin(psi),0,Math.cos(psi)];
+  const thrust=sclV(head, lenV(Tlp)*alphaVis);   // drive along heading × budget gain
+
+  /* lock geometry: panel target stations in the assembly frame */
+  const lvL=qrot(qg,[-dlock,0,0]), lvR=qrot(qg,[dlock,0,0]);
+  const sL=addV(r0,lvL), sR=addV(r0,lvR);
+  const dispL=subV(rL,sL), dispR=subV(rR,sR);
+  const rvL=subV(vL,v0),  rvR=subV(vR,v0);
+
+  /* lock restoring force on each panel, and equal-opposite reaction on can */
+  const FsL=subV(sclV(dispL,-klock),sclV(rvL,cdamp));
+  const FsR=subV(sclV(dispR,-klock),sclV(rvR,cdamp));
+  const RcL=sclV(FsL,-1), RcR=sclV(FsR,-1);
+
+  /* F_on_can = Σ lock-reaction + field thrust */
+  const Fcan=addV(addV(RcL,RcR),thrust);
+  const a0=sclV(Fcan,1/Mcan);
+  const aL=sclV(FsL,1/Mpanel), aR=sclV(FsR,1/Mpanel);
+
+  /* assembly frame yaws with the steering heading (panels turn with it) */
+  const dqg=qderiv(qg,[0,steerGain*Math.sin(dphi),0]);
+
+  /* can rotation: τ_lock = Σ (R(q_g)ρ_i) × F_lock_i, Euler eq in body frame */
+  const tauW=addV(cross(lvL,RcL),cross(lvR,RcR));
+  const qcan=qmul(qg,p0);
+  const tauB=qrot(qconj(qcan),tauW);
+  const Iw=[Ix*w0[0],Iy*w0[1],Iz*w0[2]];
+  const gyro=cross(w0,Iw);
+  const dw0=[(tauB[0]-gyro[0])/Ix,(tauB[1]-gyro[1])/Iy,(tauB[2]-gyro[2])/Iz];
+  const dp0=qderiv(p0,w0);
+
+  /* panel attitudes evolve purely quaternionically */
+  const dpL=qderiv(pL,wlL), dpR=qderiv(pR,wlR);
+
+  /* momentum radiated into the spacetime field:  dP_field/dt = −F_thrust.
+     This is the "exhaust" — it is what makes the drive NOT reactionless. */
+  const dField=sclV(thrust,-1);
+
+  /* low-pass the raw quaternionic force toward its steady value */
+  const dTlp=sclV(subV(Fq,Tlp),lpRate);
+
+  lastThrust=thrust; lastHeading=head;
+  d[0]=v0[0];d[1]=v0[1];d[2]=v0[2];
+  d[3]=a0[0];d[4]=a0[1];d[5]=a0[2];
+  d[6]=dp0[0];d[7]=dp0[1];d[8]=dp0[2];d[9]=dp0[3];
+  d[10]=dw0[0];d[11]=dw0[1];d[12]=dw0[2];
+  d[13]=vL[0];d[14]=vL[1];d[15]=vL[2];
+  d[16]=aL[0];d[17]=aL[1];d[18]=aL[2];
+  d[19]=vR[0];d[20]=vR[1];d[21]=vR[2];
+  d[22]=aR[0];d[23]=aR[1];d[24]=aR[2];
+  d[25]=dpL[0];d[26]=dpL[1];d[27]=dpL[2];d[28]=dpL[3];
+  d[29]=dpR[0];d[30]=dpR[1];d[31]=dpR[2];d[32]=dpR[3];
+  d[33]=dqg[0];d[34]=dqg[1];d[35]=dqg[2];d[36]=dqg[3];
+  d[37]=dField[0];d[38]=dField[1];d[39]=dField[2];
+  d[40]=dTlp[0];d[41]=dTlp[1];d[42]=dTlp[2];
+  return d;
+}
+
+function normq(a,i){
+  const m=Math.hypot(a[i],a[i+1],a[i+2],a[i+3])||1;
+  a[i]/=m;a[i+1]/=m;a[i+2]/=m;a[i+3]/=m;
+}
+function rk4(s,t,h){
+  const k1=deriv(s,t);
+  const s2=new Float64Array(NS); for(let i=0;i<NS;i++)s2[i]=s[i]+h/2*k1[i];
+  const k2=deriv(s2,t+h/2);
+  const s3=new Float64Array(NS); for(let i=0;i<NS;i++)s3[i]=s[i]+h/2*k2[i];
+  const k3=deriv(s3,t+h/2);
+  const s4=new Float64Array(NS); for(let i=0;i<NS;i++)s4[i]=s[i]+h*k3[i];
+  const k4=deriv(s4,t+h);
+  const o=new Float64Array(NS);
+  for(let i=0;i<NS;i++) o[i]=s[i]+h/6*(k1[i]+2*k2[i]+2*k3[i]+k4[i]);
+  normq(o,6); normq(o,25); normq(o,29); normq(o,33);   // renormalise quaternions
+  return o;
+}
+
+/* ============================================================================
+   THREE.JS SCENE
+   ========================================================================== */
+const app=document.getElementById('app');
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x05070d);
+scene.fog=new THREE.FogExp2(0x05070d,0.012);
+
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,2000);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+app.appendChild(renderer.domElement);
+
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=0.08;
+
+/* lights */
+scene.add(new THREE.HemisphereLight(0x88aaff,0x101820,0.9));
+const key=new THREE.DirectionalLight(0xffffff,0.9); key.position.set(6,12,8); scene.add(key);
+const rim=new THREE.DirectionalLight(0x4fd1ff,0.5); rim.position.set(-8,4,-10); scene.add(rim);
+
+/* reference grid + stars (helps read "straight & level") */
+const grid=new THREE.GridHelper(400,160,0x224066,0x162a44);
+grid.position.y=-3; scene.add(grid);
+(function stars(){
+  const g=new THREE.BufferGeometry(), n=1400, p=new Float32Array(n*3);
+  for(let i=0;i<n;i++){p[3*i]=(Math.random()-0.5)*1200;p[3*i+1]=(Math.random()-0.3)*600;p[3*i+2]=(Math.random()-0.5)*1200;}
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0x33507a,size:1.2,sizeAttenuation:false})));
+})();
+
+/* ---------- CRAFT meshes ---------- */
+const craft=new THREE.Group(); scene.add(craft);   // translated to CoM each frame
+
+// CAN: vertical cylinder ~1 dia, 1.5 tall
+const can=new THREE.Group();
+const canBody=new THREE.Mesh(
+  new THREE.CylinderGeometry(0.5,0.5,1.5,40,1,false),
+  new THREE.MeshStandardMaterial({color:0x878b91,metalness:0.0,roughness:1.0,
+    emissive:0x000000}));   // matte drone-gray, zero specular, per sighting
+can.add(canBody);
+// bright face marker so the tumble is unmistakable
+const marker=new THREE.Mesh(new THREE.SphereGeometry(0.17,18,18),
+  new THREE.MeshStandardMaterial({color:0xff5a5a,emissive:0xff2222,emissiveIntensity:0.8}));
+marker.position.set(0.52,0.35,0); can.add(marker);
+const stripe=new THREE.Mesh(new THREE.BoxGeometry(0.04,1.5,0.16),
+  new THREE.MeshStandardMaterial({color:0xffd27a,emissive:0x6a4a10,emissiveIntensity:0.5}));
+stripe.position.set(0.5,0,0); can.add(stripe);
+craft.add(can);
+
+// PANELS L,R: thin slabs (length=x, width=y, thickness=z -> face normal +Z)
+function makePanel(markColor){
+  const g=new THREE.Group();
+  const slab=new THREE.Mesh(new THREE.BoxGeometry(2.0,0.6,0.05),
+    new THREE.MeshStandardMaterial({color:0x84888e,metalness:0.0,roughness:1.0,
+      emissive:0x000000}));   // matte drone-gray, zero specular, per sighting
+  g.add(slab);
+  const mk=new THREE.Mesh(new THREE.BoxGeometry(1.4,0.12,0.06),
+    new THREE.MeshStandardMaterial({color:markColor,emissive:markColor,emissiveIntensity:0.6}));
+  mk.position.set(0,0.18,0.04); g.add(mk);      // directional marker on +Z (normal) face
+  return g;
+}
+const panelL=makePanel(0xff9a4a), panelR=makePanel(0x4ad0ff);
+craft.add(panelL); craft.add(panelR);
+
+// LOCK-COUPLING glow lines (can <-> panels), additive translucent
+function makeGlow(color){
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+  return new THREE.Line(g,new THREE.LineBasicMaterial({color,transparent:true,
+    opacity:0.55,blending:THREE.AdditiveBlending}));
+}
+const glowL=makeGlow(0x4fd1ff), glowR=makeGlow(0x4fd1ff);
+craft.add(glowL); craft.add(glowR);
+
+/* ---------- world-space overlays (not parented to craft) ---------- */
+const velArrow=new THREE.ArrowHelper(new THREE.Vector3(0,0,1),new THREE.Vector3(),2,0x7CFFB2,0.5,0.28);
+const fieldArrow=new THREE.ArrowHelper(new THREE.Vector3(0,0,-1),new THREE.Vector3(),2,0xff7a3c,0.6,0.34);
+scene.add(velArrow); scene.add(fieldArrow);
+
+// trajectory trail
+const TRAIL_MAX=600;
+let trail=[];
+const trailGeo=new THREE.BufferGeometry();
+const trailPos=new Float32Array(TRAIL_MAX*3);
+const trailCol=new Float32Array(TRAIL_MAX*3);
+trailGeo.setAttribute('position',new THREE.BufferAttribute(trailPos,3));
+trailGeo.setAttribute('color',new THREE.BufferAttribute(trailCol,3));
+const trailLine=new THREE.Line(trailGeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:0.9}));
+trailLine.frustumCulled=false; scene.add(trailLine);
+
+/* ============================================================================
+   CAMERA follow + view presets
+   ========================================================================== */
+let camMode='default';
+const prevCom=new THREE.Vector3();
+function centerOfMass(){
+  return new THREE.Vector3(
+    (Mcan*S[0]+Mpanel*S[13]+Mpanel*S[19])/Mtot,
+    (Mcan*S[1]+Mpanel*S[14]+Mpanel*S[20])/Mtot,
+    (Mcan*S[2]+Mpanel*S[15]+Mpanel*S[21])/Mtot);
+}
+function comVelocity(){
+  return new THREE.Vector3(
+    (Mcan*S[3]+Mpanel*S[16]+Mpanel*S[22])/Mtot,
+    (Mcan*S[4]+Mpanel*S[17]+Mpanel*S[23])/Mtot,
+    (Mcan*S[5]+Mpanel*S[18]+Mpanel*S[24])/Mtot);
+}
+const presets={
+  default:new THREE.Vector3(9,8,-13),
+  above  :new THREE.Vector3(0.01,22,0.02),
+  side   :new THREE.Vector3(20,3,0.01),
+  chase  :new THREE.Vector3(0,5,-13),
+};
+function applyView(mode){
+  camMode=mode;
+  const c=centerOfMass();
+  let off=presets[mode].clone();
+  if(mode==='chase'){
+    const v=new THREE.Vector3(S[3],S[4],S[5]);
+    if(v.length()>0.1){const f=v.clone().normalize();off=f.multiplyScalar(-13).add(new THREE.Vector3(0,5,0));}
+  }
+  camera.position.copy(c).add(off);
+  controls.target.copy(c); controls.update();
+  prevCom.copy(c);
+  ['default','above','side','chase'].forEach(m=>
+    document.getElementById('b_'+m).classList.toggle('active',m===mode));
+}
+
+/* ============================================================================
+   RENDER sync
+   ========================================================================== */
+function setQuat(obj,q){obj.quaternion.set(q[1],q[2],q[3],q[0]);}
+
+function syncMeshes(){
+  const c=centerOfMass();
+  craft.position.copy(c);
+  // positions are stored in world frame; express relative to craft group origin
+  const qg=[S[33],S[34],S[35],S[36]];
+  const p0=[S[6],S[7],S[8],S[9]];
+  const pL=[S[25],S[26],S[27],S[28]];
+  const pR=[S[29],S[30],S[31],S[32]];
+
+  can.position.set(S[0]-c.x,S[1]-c.y,S[2]-c.z);
+  setQuat(can,qmul(qg,p0));
+  panelL.position.set(S[13]-c.x,S[14]-c.y,S[15]-c.z);
+  setQuat(panelL,qmul(qg,pL));
+  panelR.position.set(S[19]-c.x,S[20]-c.y,S[21]-c.z);
+  setQuat(panelR,qmul(qg,pR));
+
+  // glow lines can<->panel (in craft-local coords)
+  function setGlow(line,a,b){
+    const p=line.geometry.attributes.position.array;
+    p[0]=a.x;p[1]=a.y;p[2]=a.z; p[3]=b.x;p[4]=b.y;p[5]=b.z;
+    line.geometry.attributes.position.needsUpdate=true;
+  }
+  setGlow(glowL,can.position,panelL.position);
+  setGlow(glowR,can.position,panelR.position);
+}
+
+function updateTrail(){
+  trail.push(centerOfMass());
+  if(trail.length>TRAIL_MAX) trail.shift();
+  for(let i=0;i<trail.length;i++){
+    const p=trail[i]; trailPos[3*i]=p.x;trailPos[3*i+1]=p.y;trailPos[3*i+2]=p.z;
+    const a=i/trail.length;                       // older -> dimmer
+    trailCol[3*i]=0.30*a+0.05; trailCol[3*i+1]=0.65*a+0.05; trailCol[3*i+2]=1.0*a+0.08;
+  }
+  trailGeo.setDrawRange(0,trail.length);
+  trailGeo.attributes.position.needsUpdate=true;
+  trailGeo.attributes.color.needsUpdate=true;
+}
+
+function updateArrows(){
+  const c=centerOfMass();
+  const v=comVelocity();
+  if(v.length()>1e-3){
+    velArrow.position.copy(c);
+    velArrow.setDirection(v.clone().normalize());
+    velArrow.setLength(Math.min(2+v.length()*0.35,9),0.5,0.28);
+  }
+  const fp=new THREE.Vector3(S[37],S[38],S[39]);
+  if(fp.length()>1e-3){
+    fieldArrow.position.copy(c);
+    fieldArrow.setDirection(fp.clone().normalize());   // points backward
+    fieldArrow.setLength(Math.min(1.5+fp.length()*0.18,12),0.6,0.34);
+  }
+}
+
+/* ============================================================================
+   HUD readouts
+   ========================================================================== */
+const $=id=>document.getElementById(id);
+const f2=n=>(n>=0?' ':'')+n.toFixed(2);
+const f3=n=>(n>=0?' ':'')+n.toFixed(3);
+const v3=(a,f=f2)=>a.map(f).join(', ');
+let hudT=0;
+
+/* ---- spacetime-channel diagnostics ----
+   The panels time-vary the system's mass quadrupole Q (extended-body second
+   moments, so Q oscillates as they tumble — that's what sources radiation).
+   The L/R force imbalance A is zero when the panels are symmetric (Δφ=0) and
+   grows with Δφ; in GR it is exactly that broken symmetry that lets a source
+   radiate NET linear momentum (not just energy), i.e. produce directional thrust. */
+function bodyMoment(q,s){               // rotated second-mass-moment tensor (3x3)
+  const ax=[qrot(q,[1,0,0]),qrot(q,[0,1,0]),qrot(q,[0,0,1])];
+  const M=[[0,0,0],[0,0,0],[0,0,0]];
+  for(let k=0;k<3;k++)for(let i=0;i<3;i++)for(let j=0;j<3;j++) M[i][j]+=s[k]*ax[k][i]*ax[k][j];
+  return M;
+}
+function diagnostics(){
+  const c=centerOfMass(), qg=[S[33],S[34],S[35],S[36]];
+  const sCan=[Mcan*0.0625, Mcan*0.1875, Mcan*0.0625];           // ∫x²dm of the can
+  const sPan=[Mpanel*4/12, Mpanel*0.36/12, Mpanel*0.0025/12];   // …of a panel slab
+  const items=[
+    {q:qmul(qg,[S[6],S[7],S[8],S[9]]),     m:Mcan,   d:[S[0]-c.x,S[1]-c.y,S[2]-c.z],  s:sCan},
+    {q:qmul(qg,[S[25],S[26],S[27],S[28]]), m:Mpanel, d:[S[13]-c.x,S[14]-c.y,S[15]-c.z],s:sPan},
+    {q:qmul(qg,[S[29],S[30],S[31],S[32]]), m:Mpanel, d:[S[19]-c.x,S[20]-c.y,S[21]-c.z],s:sPan},
+  ];
+  const T=[[0,0,0],[0,0,0],[0,0,0]];
+  for(const b of items){const M=bodyMoment(b.q,b.s);
+    for(let i=0;i<3;i++)for(let j=0;j<3;j++) T[i][j]+=M[i][j]+b.m*b.d[i]*b.d[j];}
+  const tr=T[0][0]+T[1][1]+T[2][2];
+  let qn=0; for(let i=0;i<3;i++)for(let j=0;j<3;j++){const Q=3*T[i][j]-(i===j?tr:0); qn+=Q*Q;}
+  // L/R quaternionic-force imbalance = emission asymmetry
+  const qL=qmul(qg,[S[25],S[26],S[27],S[28]]), qR=qmul(qg,[S[29],S[30],S[31],S[32]]);
+  const FqL=cross(qrot(qL,[0,0,1]),qrot(qL,omegaLocal(simTime,0)));
+  const FqR=cross(qrot(qR,[0,0,1]),qrot(qR,omegaLocal(simTime,dphi)));
+  return {quad:Math.sqrt(qn), asym:lenV(subV(FqL,FqR))*alphaVis};
+}
+
+/* ---- coupling budget: turn α into N_coh / Q / asymmetry, in real units ----
+   F_bare is the recoil an ordinary-matter version of the sighting would make
+   via mass-quadrupole radiation. The levers multiply it: coherence (N²),
+   resonance (Q). The readout shows how far short the budget falls, and the
+   on-screen gain alphaVis tracks the fraction of the (log) gap that is closed
+   — so dialing in coherence/Q visibly brings the craft to life. */
+function updateBudget(){
+  const w=2*Math.PI*Math.pow(10,PHYS.logFc);                    // carrier angular freq
+  const eps=0.15+0.85*Math.abs(Math.sin(dphi));                 // emission asymmetry A
+  const Fbare=PHYS.G*PHYS.Mp*PHYS.Mp*Math.pow(PHYS.L,4)*Math.pow(w,6)/(5*Math.pow(PHYS.c,6))*eps;
+  const Ftarget=PHYS.Mcraft*PHYS.aTarget;
+  const logAphys=2*logNcoh+logQ;                                // log10(N² · Q)
+  const Freal=Fbare*Math.pow(10,logAphys);
+  const logE=Math.log10(Ftarget/Fbare);                         // enhancement still needed
+  let frac;                                                     // log-fraction of gap closed
+  if(logE<=0) frac=1.2;                                         // F_bare alone already clears target
+  else frac=Math.max(0,Math.min(1.2, logAphys/logE));
+  alphaVis=11*Math.max(0.03,frac);
+  const logNreq=Math.max(0,0.5*(logE-logQ));
+  $('r_fbare').textContent=Fbare.toExponential(2)+' N';
+  $('r_flev').textContent='10^'+(6*PHYS.logFc).toFixed(0)+' × (ω⁶)';
+  $('r_ereq').textContent= logE<=0 ? 'none — cleared' : '10^'+logE.toFixed(1)+' ×';
+  $('r_abudget').textContent='10^'+logAphys.toFixed(0)+' ×';
+  $('r_freal').textContent=Freal.toExponential(2)+' N';
+  const gap=Ftarget/Freal;
+  const g=$('r_gap');
+  g.textContent = gap<=1 ? 'CLOSED ✓ ('+(1/gap).toExponential(1)+'× margin)' : gap.toExponential(1)+'× short';
+  g.style.color = gap<=1 ? 'var(--good)' : 'var(--warn)';
+  $('r_nreq').textContent = logE<=0 ? '0 (cleared)' : '10^'+logNreq.toFixed(1)+'  @ Q=10^'+logQ.toFixed(0);
+}
+
+function updateHUD(){
+  $('r_t').textContent=simTime.toFixed(2)+' s';
+  const v=comVelocity();
+  $('r_speed').textContent=v.length().toFixed(3);
+  $('r_vel').textContent=v3([v.x,v.y,v.z],f3);
+  const c=centerOfMass(); $('r_pos').textContent=v3([c.x,c.y,c.z]);
+  const qcan=qmul([S[33],S[34],S[35],S[36]],[S[6],S[7],S[8],S[9]]);
+  $('r_qcan').textContent=qcan.map(f3).join(', ');
+  $('r_wcan').textContent=v3([S[10],S[11],S[12]],f3);
+  $('r_wl').textContent=v3(omegaLocal(simTime,0),f3);
+  $('r_wr').textContent=v3(omegaLocal(simTime,dphi),f3);
+  // momentum budget: |craft momentum| forward vs radiated field, vector sum ≈ 0
+  const pc=[Mcan*S[3]+Mpanel*S[16]+Mpanel*S[22],
+            Mcan*S[4]+Mpanel*S[17]+Mpanel*S[23],
+            Mcan*S[5]+Mpanel*S[18]+Mpanel*S[24]];
+  const pf=[S[37],S[38],S[39]];
+  $('r_pcraft').textContent=lenV(pc).toFixed(3);
+  $('r_pfield').textContent=lenV(pf).toFixed(3);
+  $('r_pcheck').textContent=lenV(addV(pc,pf)).toExponential(1);
+  const dg=diagnostics();
+  $('r_quad').textContent=dg.quad.toFixed(3);
+  $('r_asym').textContent=dg.asym.toFixed(3);
+  updateBudget();
+}
+
+/* ============================================================================
+   MAIN LOOP
+   ========================================================================== */
+let running=true, lastT=performance.now(), acc=0;
+function loop(now){
+  requestAnimationFrame(loop);
+  const real=Math.min((now-lastT)/1000,0.05); lastT=now;
+  if(running){
+    acc+=real;
+    let steps=0;
+    while(acc>=dt && steps<8){      // fixed dt=0.01 RK4 steps
+      S=rk4(S,simTime,dt); simTime+=dt; acc-=dt; steps++;
+    }
+  }
+  syncMeshes();
+  if(showTrail && running) updateTrail();
+  updateArrows();
+  if(camMode==='chase') applyView('chase'); else {
+    const c=centerOfMass();
+    camera.position.add(c.clone().sub(prevCom));
+    controls.target.copy(c); prevCom.copy(c);
+  }
+  controls.update();
+  if((hudT++ %3)===0) updateHUD();
+  renderer.render(scene,camera);
+}
+
+/* ============================================================================
+   UI WIRING
+   ========================================================================== */
+let showTrail=true;
+function bindSlider(id,label,fn,fmt){
+  const s=$(id), l=$(label);
+  const upd=()=>{const v=parseFloat(s.value);fn(v);l.textContent=fmt(v);};
+  s.addEventListener('input',upd); upd();
+}
+bindSlider('s_ncoh','l_ncoh',v=>{logNcoh=v;updateBudget();},v=>v.toFixed(1));
+bindSlider('s_q','l_q',v=>{logQ=v;updateBudget();},v=>v.toFixed(1));
+bindSlider('s_dphi','l_dphi',v=>dphi=v,v=>v.toFixed(2)+' rad');
+bindSlider('s_klock','l_klock',v=>klock=v,v=>v.toFixed(0));
+bindSlider('s_freq','l_freq',v=>freqScale=v,v=>v.toFixed(2));
+const fmtHz=x=>{const f=Math.pow(10,x); if(f>=1e12)return (f/1e12).toFixed(0)+' THz';
+  if(f>=1e9)return (f/1e9).toFixed(0)+' GHz'; if(f>=1e6)return (f/1e6).toFixed(0)+' MHz';
+  if(f>=1e3)return (f/1e3).toFixed(0)+' kHz'; return f.toFixed(0)+' Hz';};
+bindSlider('s_fc','l_fc',v=>{PHYS.logFc=v;updateBudget();},fmtHz);
+bindSlider('s_mp','l_mp',v=>{PHYS.Mp=v;updateBudget();},v=>v.toFixed(0));
+bindSlider('s_mcraft','l_mcraft',v=>{PHYS.Mcraft=v;updateBudget();},v=>v.toFixed(0));
+bindSlider('s_g','l_g',v=>{PHYS.aTarget=v;updateBudget();},v=>(v/9.81).toFixed(1)+' g');
+
+$('b_pause').addEventListener('click',e=>{
+  running=!running; e.target.textContent=running?'⏸ Pause':'▶ Play';
+});
+$('b_reset').addEventListener('click',()=>{
+  resetState();
+  for(let i=0;i<TRAIL_MAX*3;i++){trailPos[i]=0;trailCol[i]=0;}
+  trailGeo.setDrawRange(0,0);
+  applyView(camMode);
+});
+$('b_default').addEventListener('click',()=>applyView('default'));
+$('b_above').addEventListener('click',()=>applyView('above'));
+$('b_side').addEventListener('click',()=>applyView('side'));
+$('b_chase').addEventListener('click',()=>applyView('chase'));
+
+$('t_field').addEventListener('change',e=>fieldArrow.visible=e.target.checked);
+$('t_trail').addEventListener('change',e=>{showTrail=e.target.checked;trailLine.visible=e.target.checked;});
+$('t_glow').addEventListener('change',e=>{glowL.visible=e.target.checked;glowR.visible=e.target.checked;});
+$('t_vel').addEventListener('change',e=>velArrow.visible=e.target.checked);
+
+addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+/* ---------- go ---------- */
+resetState();
+applyView('default');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

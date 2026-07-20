@@ -1,0 +1,28 @@
+{
+  "_readme": [
+    "Sight-line overlay input for tools/sightline.js — camera is already filled in.",
+    "1) Replay 2023-09-28 between 23:45 and 23:55 UTC (EXIF capture 23:50 UTC = 4:50 PM PDT).",
+    "2) For EVERY aircraft within ~10 km of the camera, copy lat/lon and the",
+    "   'Geom. WGS84' altitude at 23:50 UTC into the aircraft list.",
+    "3) Fill the anchor: pick a sharp Amazon-building feature, note its pixel in the",
+    "   ORIGINAL 3024x4032 photo, and its lat/lon from satellite imagery (roof corner).",
+    "4) Put the white object's pixel (and the aircraft-mark pixel) into objects.",
+    "5) Run: node tools/sightline.js tools/input.template.json"
+  ],
+  "camera": { "lat": 32.941250, "lon": -117.023378, "altFtMSL": 867 },
+  "anchor": {
+    "lat": null, "lon": null, "altFtMSL": null,
+    "px": [null, null],
+    "comment": "TODO: Amazon building feature — pixel in original photo + geo position"
+  },
+  "imageWidthPx": 3024,
+  "imageHeightPx": 4032,
+  "arcminPerPx": 1.03,
+  "objects": [
+    { "name": "white-object", "px": [null, null] },
+    { "name": "aircraft-mark (hexagon)", "px": [1737, 1913] }
+  ],
+  "aircraft": [
+    { "name": "TODO from 2023-09-28 23:50Z replay", "lat": null, "lon": null, "altFtMSL": null }
+  ]
+}
