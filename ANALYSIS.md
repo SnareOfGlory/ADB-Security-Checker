@@ -496,7 +496,59 @@ its 513 m scenario was an assumption its own limitations block flagged
 ("not independently selected"), implying a 13 cm object at that range.
 Superseded by the above.
 
-## 13. Epistemic status
+## 13. Final synthesis — evidence corpus closed
+
+No Live Photo sidecar exists and no second frame was taken; the corpus is
+final: one calibrated original frame + EXIF + ADS-B + witness testimony.
+
+**Established by measurement:**
+- Scene: 2023-09-28, 16:50:38.614 PDT, Poway CA; camera fix ±3.5 m; no
+  indications of image manipulation.
+- The photographed aircraft is a **V-22 Osprey** (visual) and is **flight
+  UGLY** (geometric: heading-calibrated az/el + ADS-B + approach kinematics).
+  The witnessed pair was a Marine V-22 two-ship, lead transponding.
+- A **real, unidentified optical object** at az 88.3°, el 26.6°: compact
+  (3 px core), bright pale blue-white, dark element beneath, on **no
+  broadcasting aircraft's sight line** — in airspace where civil ADS-B is
+  mandatory.
+- If co-located with the V-22 flight: **~2.2–3.5 m**, ~900 m above the
+  pair's track, in a trailing high-perch geometry.
+
+**Witness-record scorecard** (instructive for any future reader):
+categorical percepts verified 4-for-4 (two aircraft ✓, tilt-rotor type ✓,
+afternoon ✓, "saw two / ADS-B shows one" ✓ — standard dark wingman);
+metric estimates corrected 3-for-3 (range 7× short, date transposed,
+speed band). The reported object size (~3 m) verified *at the corrected
+range*. This is the normal division of labor between human perception and
+instruments, quantified.
+
+**Permanently open (single frame cannot close it):**
+- **Balloon at ~300 m** (0.3 m, drifting) vs. **~3 m object at the pair's
+  range**: identical pixel morphology. The discriminator is the witness's
+  dynamical testimony — 20 s of co-motion with a flight that crossed tens
+  of degrees of sky (a stationary drifter would be left behind trivially;
+  co-motion is a low-demand percept with reference objects present, and
+  favors the object hypothesis) — and the tumbling tri-body structure
+  (a high-demand percept at the resolution limit, unverifiable from this
+  evidence in either direction).
+
+**What could reopen the case:** a second witness or camera (the object was
+photographable from anywhere in Poway at that minute); Miramar-area
+ground/security camera archives for 2023-09-28 23:50Z; the UGLY crews
+themselves — a FOIA or unit-history query for Miramar V-22 operations that
+afternoon could confirm the flight and reveal whether the crews reported a
+contact in their right-rear high quadrant; NUFORC/MUFON database search for
+same-day reports in San Diego County.
+
+**Standing verdict:** an unidentified, non-broadcasting, ~3 m-class object
+photographed in a trailing high-perch station relative to a Marine V-22
+flight, with every transponding aircraft in the frame's sky accounted for
+— *contingent on the witness's co-motion testimony*, which the evidence can
+neither confirm nor refute. The tri-body quaternionic kinematics modeled in
+`tri-body-craft.html` remain testimony-only: physically extraordinary if
+real (§§4–7), invisible to this photograph by construction (§12).
+
+## 14. Epistemic status
 
 The witness record is taken as given and passes its internal consistency
 checks (§2). Derived anomalies (§4–5) are order-of-magnitude aerodynamics and
