@@ -425,7 +425,78 @@ anchor's geo-coordinates + its pixel in the original frame; (2) EXIF seconds
 (`exiftool -DateTimeOriginal -SubSecTimeOriginal photo.jpg`) to pin UGLY's
 along-track position at the exact capture instant; (3) original files.
 
-## 11. Epistemic status
+## 12. Original-file forensics — RESULTS
+
+Witness supplied the untouched original (`photos/original_2023-09-28_165038.JPG`,
+4032×3024, iPhone 13 wide). All measurements below are mine, on those pixels.
+Supersedes the degraded-copy estimates in §9 where they conflict.
+
+**EXIF solved everything the anchor was for:**
+- Capture: **2023-09-28 16:50:38.614 PDT** (23:50:38.6 UTC; GPS clock concurs)
+- **GPSImgDirection: 96.9° true** — the camera's own compass heading
+- GPS position = the witness's stated fix, ±3.5 m; exposure internally
+  consistent (1/2309 s f/1.6 ISO 50, bright clear afternoon). No signs of
+  manipulation; `the_ufo1.jpg` and the pipeline inputs are same-instant
+  derivatives (identical DateTimeOriginal+subsec).
+
+**The treeline aircraft IS a V-22, and it is UGLY** (`analysis-assets/aircraft_4x.png`):
+- The 4× crop shows an unmistakable V-22 silhouette — fuselage, wing, both
+  wingtip proprotor discs — light gray, viewed from below-oblique.
+- Pixel (1737,1913) → **az 100.8°, el 15.5°** (EXIF heading + horizon-solved
+  pitch). Dark-silhouette span **~25±4 px** → V-22 dimensions fit at
+  **2.3–3.7 km** — inside UGLY's ADS-B bracket.
+- UGLY's last fix (23:50:20) puts it at az 86.5°, el 12.6°, 234 kt,
+  −2,048 ft/min, 18.6 s before capture. Constant-speed dead reckoning misses
+  the pixel by ~25° az, but any realistic decelerating Miramar approach
+  (234 kt → ~120 kt after the fix — which is exactly the nacelle-conversion
+  regime) passes through the measured az/el at the capture second.
+  **The photographed aircraft = UGLY; the witness's "nacelles up" recall
+  matches the conversion phase.** The path objection resolves: the remembered
+  ground track was distorted by the (now-corrected) range perception.
+
+**The white object, measured** (`analysis-assets/white_object_8x.png`):
+- Sole detection in the open sky: residual 103 vs noise floor ~8 — a real
+  optical feature, not compression artifact. Centroid **(1014, 1266)** →
+  **az 88.3°, el 26.6°**.
+- Photometry: bright compact core, FWHM **3×3 px (3.1 arcmin, 0.90 mrad)**;
+  faint envelope 15×19 px; peak RGB (192, 226, 255) — pale blue-white, blue
+  channel clipped; a hard dark element (lum 63 vs sky 117) at the core's
+  lower edge.
+- **§6 revision:** the "white square" is a visible-light bright blob;
+  "square" was zoom-crop pixelation. The NIR-emitter hypothesis is retired —
+  eye-invisibility is explained by low contrast at 3 arcmin against bright
+  sky, no exotic band needed.
+- **Sight-line exclusion now closed in full az/el:** the object sits ~12° in
+  azimuth from UGLY at capture and above UGLY's *entire* track (UGLY never
+  exceeds el ~17°); the two GA broadcasters were west, behind the camera.
+  **No broadcasting aircraft occupies the object's line of sight.**
+
+**Size, with true pixels (ratio method, downscale-proof):**
+core/Osprey = 3/25 ≈ 0.12 → **~2.2–3.5 m if co-located with the pair** —
+matching the witness's original ~3 m estimate almost exactly (their reported
+size was right; only their range was wrong). At that scale the reported thin
+panels (0.05 m ≈ 0.06 px) are unresolvable by construction, consistent with
+the pipeline's "no resolved panel structure." The §9 interim "~10 m class"
+estimates were inflated by re-encode blur and are superseded.
+
+**The honest fork the pixels cannot split:** the same morphology — bright
+round top, dark element beneath, ~3 arcmin — fits (a) a **balloon at
+~300 m** (0.3 m, drifting), and (b) the **witness's ~3 m craft at the
+pair's 2.4–3.3 km range**, panels unresolved. Single-frame photometry
+cannot discriminate. What can: the witness's 20-second dynamical
+observation (a balloon cannot pace a 120–230 kt military flight across the
+sky, and has no tumbling panels) — and, decisively, **motion data**. The
+iPhone 13 keeps Live Photos by default: if this capture has its `.MOV`
+sidecar (~3 s, ~45 frames), the angular tracks of both objects settle
+balloon-vs-craft outright. Requested from the witness.
+
+**Witness's prior pipeline** (`analysis-assets/witness_pipeline_panel.jpg`,
+bundles): ran on a 1536-px downscale and a 186×248 crop (dynamic range 9);
+its 513 m scenario was an assumption its own limitations block flagged
+("not independently selected"), implying a 13 cm object at that range.
+Superseded by the above.
+
+## 13. Epistemic status
 
 The witness record is taken as given and passes its internal consistency
 checks (§2). Derived anomalies (§4–5) are order-of-magnitude aerodynamics and
